@@ -73,13 +73,14 @@
   .ghost:hover{background:var(--accent-soft)}
   /* the book page */
   .page{width:6in;min-height:9in;background:var(--paper);box-shadow:var(--shadow);border:1px solid #ece6d9;
-        padding:1in;font-family:var(--serif);color:#17150f;border-radius:2px}
+        padding:1in;font-family:var(--serif);color:#17150f;border-radius:2px;overflow-wrap:break-word;position:relative}
+  .pagenum{position:absolute;top:.5in;right:.6in;font-family:var(--serif);font-size:10pt;color:#9a917f;letter-spacing:.02em;pointer-events:none}
   .page .ch-h1{font-size:17pt;font-weight:700;margin:0 0 2pt;line-height:1.2}
   .page .ch-pov{font-size:13pt;font-style:italic;color:#332f27;margin:0 0 18pt;outline:none}
   .page .ch-pov:empty:before{content:'POV character';color:#b6ae9d}
-  .editor{font-size:12pt;line-height:2;outline:none;min-height:5in}
+  .editor{font-size:12pt;line-height:2;outline:none;min-height:5in;overflow-wrap:break-word;word-break:normal}
   .editor:focus{outline:none}
-  .editor p,.editor div{margin:0;text-indent:.5in;line-height:2}
+  .editor p,.editor div{margin:0;text-indent:.5in;line-height:2;overflow-wrap:break-word}
   .editor:empty:before,.editor>p:only-child:empty:before{content:'Begin writing\2026';color:#bdb4a2}
   /* title page */
   .page.title{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:9in}
@@ -119,7 +120,8 @@
   .beats .empty{padding:20px;color:var(--muted);font-size:13px;text-align:center}
   /* novel view */
   .novelbar{display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:18px;flex-wrap:wrap}
-  .novelpages{display:flex;flex-direction:column;align-items:center;gap:22px}
+  .novelpages{display:flex;flex-direction:column;align-items:center;gap:22px;width:100%}
+  .pagescale{flex:0 0 auto}
   /* modal */
   .scrim{position:fixed;inset:0;background:rgba(28,26,23,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
   .modal{background:#fff;border-radius:14px;box-shadow:var(--shadow);width:min(560px,100%);max-height:90vh;overflow:auto;padding:22px}
@@ -632,17 +634,39 @@ function renderNovel(main){
   main.appendChild(bar);
 
   const pages=el(`<div class="novelpages"></div>`);
+  const addPage=(node)=>{ const w=el(`<div class="pagescale"></div>`); w.appendChild(node); pages.appendChild(w); };
   // title
-  pages.appendChild(el(`<div class="page title"><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
+  addPage(el(`<div class="page title"><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
   // toc
   const tocrows=state.chapters.map((c,i)=>`<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">\u2026</span></div>`).join('');
-  pages.appendChild(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Page numbers are finalized in the Word &amp; PDF exports.</div></div>`));
+  addPage(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Page numbers are finalized in the Word &amp; PDF exports.</div></div>`));
   // chapters
   state.chapters.forEach((c,i)=>{
     const body=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('')||'<p style="color:#bdb4a2">(empty)</p>';
-    pages.appendChild(el(`<div class="page"><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
+    addPage(el(`<div class="page"><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
   });
   main.appendChild(pages);
+  requestAnimationFrame(fitNovelPages);
+}
+
+/* Scale the preview pages down to fit the available width so a 6-inch page
+   never overflows a narrower window (which would clip text and look like it
+   is spilling off the page). Exact book dimensions are preserved in the
+   .docx / PDF exports; this only affects the on-screen preview. */
+function fitNovelPages(){
+  const cont=document.querySelector('.novelpages'); if(!cont) return;
+  const avail=cont.clientWidth;
+  cont.querySelectorAll('.pagescale').forEach(w=>{
+    const page=w.firstElementChild; if(!page) return;
+    page.style.transform='none';                 // reset so we measure true size
+    const pw=page.offsetWidth, ph=page.offsetHeight;
+    if(!pw){ return; }
+    const s=Math.min(1, avail/pw);
+    page.style.transformOrigin='top left';
+    page.style.transform = s<1 ? 'scale('+s+')' : 'none';
+    w.style.width  = (pw*s)+'px';
+    w.style.height = (ph*s)+'px';
+  });
 }
 
 /* --------------------------- editor utils ------------------------------ */
@@ -891,6 +915,7 @@ window.addEventListener('beforeunload', function(e){
 });
 
 setTimeout(checkBackupReminder, 1500);
+window.addEventListener('resize', ()=>{ if(ui.view==='novel') fitNovelPages(); });
 
 if(useCloud){ initCloud().catch(e=>{ useCloud=false; console.warn('Cloud sync unavailable, using local mode.',e); }); }
 </script>
