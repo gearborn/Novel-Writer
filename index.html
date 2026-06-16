@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Manuscript</title>
+<!-- docx generator (loads window.docx) -->
+<script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js"></script>
+<style>
+  :root{
+    --paper:#fbf9f4; --ink:#1c1a17; --muted:#6b655c; --line:#e3ddd1;
+    --accent:#7a5c3e; --accent-soft:#efe7da; --panel:#f4efe6; --chip:#ece4d6;
+    --ok:#3f7d4f; --shadow:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);
+    --serif:Georgia,'Iowan Old Style','Palatino Linotype',Palatino,'Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--panel);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;cursor:pointer}
+  .app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto 1fr;height:100vh}
+  /* ---------- top bar ---------- */
+  .topbar{grid-column:1/3;display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);z-index:30}
+  .brand{font-family:var(--serif);font-weight:700;font-size:18px;letter-spacing:.02em;color:var(--ink)}
+  .brand small{display:block;font-family:var(--sans);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .topspace{flex:1}
+  .status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#bbb}
+  .dot.saving{background:#caa45a}.dot.saved{background:var(--ok)}.dot.cloud{background:#4b7bd1}
+  .tbtn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 12px;border-radius:8px;font-size:13px}
+  .tbtn:hover{background:var(--accent-soft)}
+  .tbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tbtn.primary:hover{filter:brightness(1.05)}
+  .hamb{display:none}
+  /* ---------- sidebar ---------- */
+  .sidebar{background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:12px}
+  .navsec{margin-bottom:18px}
+  .navlabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 6px 8px}
+  .navitem{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;color:var(--ink);font-size:14px;border:1px solid transparent;width:100%;text-align:left;background:none}
+  .navitem:hover{background:var(--accent-soft)}
+  .navitem.active{background:var(--accent-soft);border-color:var(--line);font-weight:600}
+  .navitem .ico{width:18px;text-align:center;opacity:.7}
+  .chip{margin-left:auto;font-size:11px;color:var(--muted);background:var(--chip);padding:1px 7px;border-radius:20px}
+  .chrow{display:flex;align-items:center;gap:4px}
+  .chrow .navitem{flex:1}
+  .mini{border:none;background:none;color:var(--muted);font-size:13px;padding:4px 5px;border-radius:6px;line-height:1}
+  .mini:hover{background:var(--accent-soft);color:var(--ink)}
+  .addbtn{width:100%;border:1px dashed var(--accent);color:var(--accent);background:none;padding:9px;border-radius:8px;font-size:13px;font-weight:600}
+  .addbtn:hover{background:var(--accent-soft)}
+  .navdivider{height:1px;background:var(--line);margin:10px 4px}
+  /* ---------- main ---------- */
+  .main{overflow:auto;padding:24px;position:relative}
+  .sheetwrap{display:flex;justify-content:center;gap:22px;align-items:flex-start;max-width:1100px;margin:0 auto}
+  .sheetwrap.full .beats{display:none}
+  .pagecol{flex:0 0 auto}
+  .toolrow{display:flex;align-items:center;gap:10px;margin:0 auto 14px;max-width:6in;color:var(--muted);font-size:12px}
+  .toolrow .grow{flex:1}
+  .ghost{border:1px solid var(--line);background:#fff;color:var(--ink);padding:6px 11px;border-radius:8px;font-size:12px}
+  .ghost:hover{background:var(--accent-soft)}
+  /* the book page */
+  .page{width:6in;min-height:9in;background:var(--paper);box-shadow:var(--shadow);border:1px solid #ece6d9;
+        padding:1in;font-family:var(--serif);color:#17150f;border-radius:2px}
+  .page .ch-h1{font-size:17pt;font-weight:700;margin:0 0 2pt;line-height:1.2}
+  .page .ch-pov{font-size:13pt;font-style:italic;color:#332f27;margin:0 0 18pt;outline:none}
+  .page .ch-pov:empty:before{content:'POV character';color:#b6ae9d}
+  .editor{font-size:12pt;line-height:2;outline:none;min-height:5in}
+  .editor:focus{outline:none}
+  .editor p,.editor div{margin:0;text-indent:.5in;line-height:2}
+  .editor:empty:before,.editor>p:only-child:empty:before{content:'Begin writing\2026';color:#bdb4a2}
+  /* title page */
+  .page.title{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:9in}
+  .title .booktitle{font-size:30pt;font-weight:700;letter-spacing:.02em;margin:0 0 6pt;outline:none;width:100%}
+  .title .byline{font-size:13pt;color:#4a4538;margin-top:18pt}
+  .title .byline .auth{font-style:italic;outline:none}
+  .title .booktitle:empty:before{content:'Title';color:#cabfb3}
+  /* toc page */
+  .toc h2{font-family:var(--serif);text-align:center;font-size:16pt;margin:0 0 24pt}
+  .tocrow{display:flex;justify-content:space-between;font-family:var(--serif);font-size:12pt;padding:3pt 0;border-bottom:1px dotted #d8d0bf}
+  .tocrow .pov{font-style:italic;color:#4a4538}
+  .tocrow .pg{color:#a79f8e}
+  .tocnote{margin-top:22pt;font-family:var(--sans);font-size:11px;color:var(--muted);text-align:center}
+  /* cover editor fields */
+  .fieldcard{max-width:6in;margin:0 auto 16px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+  .fieldcard label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 5px}
+  .fieldcard input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:15px;font-family:var(--serif);margin-bottom:12px}
+  .fieldcard input:focus{outline:none;border-color:var(--accent)}
+  /* beats panel */
+  .beats{flex:0 0 320px;width:320px;background:#fff;border:1px solid var(--line);border-radius:12px;align-self:stretch;display:flex;flex-direction:column;max-height:calc(100vh - 150px);position:sticky;top:0}
+  .beats h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .beats h3 .count{margin-left:auto;font-size:11px;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:20px}
+  .beatlist{overflow-y:auto;padding:8px;flex:1}
+  .beat{display:flex;gap:9px;padding:7px 8px;border-radius:8px;align-items:flex-start}
+  .beat:hover{background:var(--panel)}
+  .beat.hdr{font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;font-size:11px;padding-top:12px}
+  .beat input[type=checkbox]{margin-top:3px;width:16px;height:16px;accent-color:var(--accent);flex:0 0 auto;cursor:pointer}
+  .beat .txt{flex:1;font-size:13px;line-height:1.45;outline:none}
+  .beat.done .txt{text-decoration:line-through;color:var(--muted)}
+  .beat .del{opacity:0;border:none;background:none;color:var(--muted);font-size:14px;padding:0 2px}
+  .beat:hover .del{opacity:1}
+  .beat .del:hover{color:#b4453a}
+  .beatadd{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+  .beatadd input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px}
+  .beatadd input:focus{outline:none;border-color:var(--accent)}
+  .beatadd button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:0 12px}
+  .beats .empty{padding:20px;color:var(--muted);font-size:13px;text-align:center}
+  /* novel view */
+  .novelbar{display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .novelpages{display:flex;flex-direction:column;align-items:center;gap:22px}
+  /* modal */
+  .scrim{position:fixed;inset:0;background:rgba(28,26,23,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal{background:#fff;border-radius:14px;box-shadow:var(--shadow);width:min(560px,100%);max-height:90vh;overflow:auto;padding:22px}
+  .modal h2{margin:0 0 4px;font-family:var(--serif);font-size:20px}
+  .modal p.sub{margin:0 0 16px;color:var(--muted);font-size:13px}
+  .modal label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 5px}
+  .modal input,.modal textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:14px;font-family:var(--sans)}
+  .modal textarea{min-height:180px;font-family:var(--serif);line-height:1.5;resize:vertical}
+  .modal input:focus,.modal textarea:focus{outline:none;border-color:var(--accent)}
+  .modal .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  /* auth gate */
+  .gate{position:fixed;inset:0;background:var(--panel);display:flex;align-items:center;justify-content:center;z-index:80}
+  .gatecard{background:#fff;border-radius:16px;box-shadow:var(--shadow);width:min(380px,92%);padding:28px;text-align:center}
+  .gatecard .brand{font-size:26px;margin-bottom:4px}
+  .gatecard input{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:14px;margin:8px 0}
+  .gatecard input:focus{outline:none;border-color:var(--accent)}
+  .gatecard .err{color:#b4453a;font-size:13px;min-height:18px;margin:4px 0}
+  .linkbtn{background:none;border:none;color:var(--accent);font-size:13px;text-decoration:underline;margin-top:10px}
+  /* responsive */
+  @media (max-width:820px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:fixed;top:53px;bottom:0;left:0;width:280px;z-index:40;transform:translateX(-100%);transition:transform .2s;box-shadow:var(--shadow)}
+    .sidebar.open{transform:none}
+    .hamb{display:inline-flex}
+    .sheetwrap{flex-direction:column;align-items:center}
+    .beats{width:6in;max-width:100%;flex:0 0 auto;position:static;max-height:none}
+    .main{padding:14px}
+    .page{transform-origin:top center}
+  }
+  .scrollx{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* =========================================================================
+   COGNITO Manuscript App  —  single-file, vanilla JS
+   Storage: localStorage always; optional Firebase cloud sync (see CONFIG).
+   ========================================================================= */
+
+/* ----------------------- CLOUD SYNC CONFIG (optional) -------------------
+   Leave apiKey empty to run in LOCAL-ONLY mode (saves in this browser).
+   To sync across devices + lock behind a private login, paste your Firebase
+   web config below (instructions are in the setup notes I gave you).        */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+/* ----------------------------------------------------------------------- */
+
+const SEED = {"title": "COGNITO", "author": "Corey Hanley", "chapters": [{"id": "876tkfwb", "pov": "Paul", "body": "", "beats": [{"id": "7j0b05am", "text": "JOB — Teach the world's emotional temperature through one dinner. Establish Paul as settled-but-secretly-unclean. Make the reader the prude.", "checked": false, "header": false}, {"id": "tzmtaful", "text": "OPEN ON — The most familiar scene in fiction, played straight — Paul outside the restaurant, early, checking his reflection in the window, the small rituals of a nervous man back in the dating world. Let the reader relax into a genre they recognize. Give them three or four paragraphs of normal before you pull the floor out.", "checked": false, "header": false}, {"id": "lsk3y4lw", "text": "Beats", "header": true}, {"id": "uj34yk32", "text": "Pre-date interiority: Paul's small comforts, his routines, the texture of his okay-ness. Seed the thing his ease steps around — unnamed, a half-second snag — then move past it.", "checked": false, "header": false}, {"id": "6h15g56o", "text": "She arrives (placeholder: Renata). Surface-charming small talk; the reader still thinks they're in a rom-com.", "checked": false, "header": false}, {"id": "yyqujvpj", "text": "Paul lances the boil himself: he raises the stepdaughter searches, framed as a self-deprecating joke. Beat of the reader thinking oof, brave.", "checked": false, "header": false}, {"id": "7x3zin5l", "text": "It wasn't a joke — and it doesn't land as a bomb. Renata waves it off and tables her own catalog as ordinary getting-to-know-you (the bondage; the interracial-shaming videos; \"any siblings?\"). The world tilts. This is not the world we know.", "checked": false, "header": false}, {"id": "q0wtnk5d", "text": "Paul's private contradiction running under the scene: he morally ranks her catalog against his, wonders if she's worse, wonders if she's racist — and reaches for moral distinctions the culture no longer stocks. He knew before tonight that she'd been outed for racist posts, and he chose her partly for it — a worse sin to stand above. Never state this. Let it operate.", "checked": false, "header": false}, {"id": "7p1vleia", "text": "A flicker of the thing he can't enjoy: she offers him the cheap absolution the world hands everyone (\"we all looked things up after Game of Thrones, whatever\") — and he can't take it, because he knows his version wasn't just the algorithm. He smiles and accepts it anyway.", "checked": false, "header": false}, {"id": "11l7w7tq", "text": "End of dinner: ambiguous chemistry, unresolved. The date \"went fine.\" That's almost the horror.", "checked": false, "header": false}, {"id": "41433uxr", "text": "WORLD RULES — Shame is dead as social currency. Dating means your worst searches are on your profile. Disclosure-as-courtesy (lightly — Ch.6 will formalize it). Cancellation barely sticks now (Renata, outed and dining out fine). \"Before Cognito\" used casually, like \"before COVID.\"", "checked": false, "header": false}, {"id": "fjp2qjtu", "text": "SEEDS — Paul's comparative-shame flaw (the arc he sheds by the climax). His inability to take cheap absolution (recurs Ch.7 with the neighbor). The unnamed snag = Sadie, withheld.", "checked": false, "header": false}, {"id": "ceao3akg", "text": "COIN — Paul lets himself believe he's the better person at this table — the self-deception he'll have to lose.", "checked": false, "header": false}, {"id": "eykksagd", "text": "CLIFFHANGER — Walking home, unfiled — a little ashamed of how relieved he is to have found someone worse. (Soft button; the engine is character, not plot. That's correct for an opener.)", "checked": false, "header": false}, {"id": "npk3yj0w", "text": "VOICE — Settled, wry, warm. Comfort as provocation. The prose should be comfortable in a way that unsettles the reader, because Paul isn't narrating any of this as horrifying.", "checked": false, "header": false}]}, {"id": "zzbmorz1", "pov": "Michelle", "body": "", "beats": [{"id": "e4fdxqyy", "text": "JOB — Establish her world, her flaw, the seat, Sloane, Travis-in-background — and light the work engine with a deadline. End by pointing her at Paul.", "checked": false, "header": false}, {"id": "ld0xfprg", "text": "OPEN ON — Michelle mid-competence-theater — running a room, precise, controlled, seeming capable. Then a crack: a question she can't answer, a decision she fakes. Establish \"clean got her here; clean isn't capable.\"", "checked": false, "header": false}, {"id": "1kj7gecq", "text": "Beats", "header": true}, {"id": "gayvqoe3", "text": "The seat, and her precariousness in it. She inherited a chair she can't fully fill.", "checked": false, "header": false}, {"id": "jzhw9f68", "text": "Sloane Hartwell above her — exposed like everyone, immune like no one. One small demonstration of the rich rule (Sloane untouched by something that would end an employee). Shown, not said.", "checked": false, "header": false}, {"id": "bcx1h939", "text": "Travis in the background — warm, useful, universally liked; he does something genuinely helpful or charming here. Plant him as good company so his Ch.3/Ch.5 harshness lands as contrast. Michelle half-clocks him as a threat and half-likes him, which annoys her.", "checked": false, "header": false}, {"id": "kxix6yxp", "text": "The project: a stalled relaunch of a dormant Hartwell franchise (placeholder). It's going wrong, and the missing piece — why a prior deal was structured/killed the way it was — exists in exactly one head. The institutional memory was purged.", "checked": false, "header": false}, {"id": "gcch6q32", "text": "The deadline: Sloane wants it by a board date. Her seat depends on delivering. Now the work engine has a clock.", "checked": false, "header": false}, {"id": "6cmvgcnc", "text": "She pulls the file of the man who'd know — Paul's record — and reads it the way the world reads it: the searches, the TikTok story, the resignation coverage. Files him: that guy. A flash of distaste; she closes the tab.", "checked": false, "header": false}, {"id": "vrnyb8al", "text": "But the deadline doesn't care about her distaste. She realizes she has to find him.", "checked": false, "header": false}, {"id": "h3myo971", "text": "WORLD RULES — The purge (old guard gone, institutional memory with them). The seat's three-way legitimacy (hers = clean record). Sloane = the rich exception. Vetting/looking is normal, instant, unremarked.", "checked": false, "header": false}, {"id": "d96xr6ex", "text": "SEEDS — The project deadline drives the M2 alliance. Michelle filing Paul from the record = the exact judgment Movement Six will detonate (she'll re-read this same file and find it no longer fits). Travis-as-likable = the contrast the whole Travis design needs. Plant the fanfic obliquely if you want (something she keeps off her own work machine).", "checked": false, "header": false}, {"id": "9hnvanqn", "text": "COIN — She resolves to track down the man she just filed as beneath her.", "checked": false, "header": false}, {"id": "83e3bnb8", "text": "CLIFFHANGER — The decision to find Paul — and a beat of dread or distaste about needing him specifically.", "checked": false, "header": false}, {"id": "ythd02ah", "text": "VOICE — Controlled, precise, a little armored. Let one seam show — a private warmth or romanticism she'd never display at work (the tell that becomes the fanfic).", "checked": false, "header": false}]}, {"id": "ntalypqu", "pov": "@", "body": "", "beats": [{"id": "0mm9rf9r", "text": "JOB — Deliver Paul's \"file\" as a weapon being built — and implicate the reader in the conspiracy logic. The book's method (record vs. human) executed as form in one chapter.", "checked": false, "header": false}, {"id": "nobtazv8", "text": "OPEN ON — A screen. An unnamed \"he,\" mid-assembly. The chapter is headed with the account's handle, not a name. We do not know it's Travis.", "checked": false, "header": false}, {"id": "r3eje084", "text": "Beats", "header": true}, {"id": "34qdt9e6", "text": "Establish the work-in-progress: he's building an edit/exposé on Paul. The craft of it — the cuts, the framing, the music of outrage.", "checked": false, "header": false}, {"id": "zrpjnhft", "text": "Ride his mind connecting dots: this search plus this timestamp plus this Instagram visit must mean this; and if that's true, then look what else lines up. Seductive detective logic. Let the reader feel the dopamine of the pattern clicking. Let them agree for a while.", "checked": false, "header": false}, {"id": "zdbobze3", "text": "Escalate the leaps by degrees until one is a hair too far — a connection built on a connection, a \"must have\" presented as \"did.\" The reader should feel, faintly, wait — then get pulled back into the momentum.", "checked": false, "header": false}, {"id": "abs3emwd", "text": "His certainty is total and sincere — he believes he's doing justice, not malice. Never a mustache. This is a true believer.", "checked": false, "header": false}, {"id": "63pakm5p", "text": "The damning portrait of Paul lands at full Nick-Shirley intensity: loose facts taken to ugly extremes. (This is also the reader's second version of Paul — after Ch.1's human, now the monster-edit. The gap between them is the point.)", "checked": false, "header": false}, {"id": "dblbq0mr", "text": "The numbers, the audience, the dopamine of the metrics. A glimpse of why he does it that isn't (only) cruelty.", "checked": false, "header": false}, {"id": "rig5ym4x", "text": "WORLD RULES — The exposure-account ecosystem; how the database gets weaponized (raw data → narrative). That a \"file\" is raw material anyone can edit into a story.", "checked": false, "header": false}, {"id": "v7jh91z8", "text": "SEEDS — Plant one tell — a verbal tic, a phrase, an aesthetic fingerprint — that pays off when the handle is unmasked as Travis. The conspiracy-logic texture sets up the reader's later complicity (they believed the edit too). This is the account that destroyed Paul (already known from Ch.2's file); now we've met its hand.", "checked": false, "header": false}, {"id": "c2z8i1qz", "text": "COIN — He hits publish.", "checked": false, "header": false}, {"id": "5rsuvjk4", "text": "CLIFFHANGER — The post goes live. Cut away before it lands. The weapon is fired; the blast is off-page. (We feel its damage in M2.)", "checked": false, "header": false}, {"id": "kaixtzda", "text": "VOICE — Bright, certain, conspiratorial, propulsive. The fluency is seductive. The reader should enjoy being in this head and feel a little dirty about it. Critically: do not let the prose wink at the reader that he's the villain — play his sincerity straight.", "checked": false, "header": false}]}, {"id": "5r840whj", "pov": "Paul", "body": "", "beats": [{"id": "pha176k0", "text": "JOB — Show Paul's freedom AND its limit. He can't reopen the one door he wants; that's why he's sliding into distraction. Seed his need for Michelle. Introduce the zealots with a cost.", "checked": false, "header": false}, {"id": "f1vr21e3", "text": "OPEN ON — Paul enjoying the new world — the genuine fun and freedom of it, the first real taste of the upside. Let it be appealing before you complicate it.", "checked": false, "header": false}, {"id": "oq3e87ws", "text": "Beats", "header": true}, {"id": "6w61g475", "text": "The pleasure of the post-shame world, for real. People who know everything and stay anyway. He's lighter than he's ever been.", "checked": false, "header": false}, {"id": "dcl8392f", "text": "The shadow under it: he's been trying to monetize his institutional knowledge — consulting, advising, quietly reaching out — and no one will hire the name. The freedom is partly a consolation for a door that won't reopen.", "checked": false, "header": false}, {"id": "h5k5h5de", "text": "A specific failed attempt — a meeting that goes nowhere, a call not returned — so the rejection is dramatized, not summarized. He privately admits he can't do this alone. (This is the need Michelle meets in M2.)", "checked": false, "header": false}, {"id": "wzenud6j", "text": "The distractions intensify because of the rejection — the club, the appetites, framed as a man filling a professional void with sensation.", "checked": false, "header": false}, {"id": "u74qdp6z", "text": "The zealots: first real encounter with the religious anti-shamelessness movement — a protest, a pamphlet, a confrontation. It must cost or tempt: someone recognizes him (he's a poster child for what they hate), OR an unwelcome flicker of his own buried sympathy for their position (he, of all people, knows the cost of a world with no shame). Don't let them be wallpaper.", "checked": false, "header": false}, {"id": "729jf523", "text": "Sadie seed: an unknown number calls; he doesn't recognize it; he doesn't pick up. (It's Sadie; she's changed her number. Pays off Ch.7.)", "checked": false, "header": false}, {"id": "y3d2pl4h", "text": "WORLD RULES — The zealot movement as a real political force. The post-Cognito employment reality (who's unhireable, who isn't). The texture of the underground/sex-work economy (sets up Ch.7's QR scene).", "checked": false, "header": false}, {"id": "ucs3fjm3", "text": "SEEDS — Paul's need = M2 alliance. The zealots = recurring antagonist that hunts him (and Travis's family adjacent to that world). The unknown number = Sadie at the door. His buried sympathy for the zealots = complicates him.", "checked": false, "header": false}, {"id": "3u530n79", "text": "COIN — Paul confirms — to himself — that he cannot get back in alone.", "checked": false, "header": false}, {"id": "ebponqmp", "text": "CLIFFHANGER — The phone, the unknown number, the choice not to answer. (Quiet dread.)", "checked": false, "header": false}, {"id": "pwfq73rf", "text": "VOICE — Same warmth as Ch.1, now with the ache underneath more visible. The fun should read as fun; the reader should like his freedom before clocking its cost.", "checked": false, "header": false}]}, {"id": "ymcz223t", "pov": "Travis", "body": "", "beats": [{"id": "o1pz7msg", "text": "JOB — Reveal the architect's domestic life — the trad idyll, the brother, the family religion — and contrast it hard against Ch.3's hand. Light the anniversary clock. Decide his angle on Michelle. Plant the Father.", "checked": false, "header": false}, {"id": "ozyb6t72", "text": "OPEN ON — Mara's kitchen. Warmth, cooking smells, the laundry she still does for him. The most wholesome possible frame around the coldest possible character.", "checked": false, "header": false}, {"id": "q4s6d19n", "text": "Beats", "header": true}, {"id": "xotcbhqv", "text": "The idyll: Travis lives close enough for independence but comes home nightly. Mara cooks; she does his laundry; it's comfortable, loving, real. Let the warmth be genuine — it's what makes him relatable.", "checked": false, "header": false}, {"id": "mqkl3nln", "text": "Derek (9, twelve years younger): innocent, adoring, close with Travis. Establish the bond. Plant that Derek is the truly blank slate — born into the after, will never know a pre-Cognito world. Travis is protective of that innocence in a way he can't fully articulate.", "checked": false, "header": false}, {"id": "fm21tsf1", "text": "The family religion: in passing, naturally — they don't look at each other's histories. Purity as identity. The parents disapprove of Travis's job (vague to them) but let him make his own mistakes.", "checked": false, "header": false}, {"id": "x6t8d0n7", "text": "The anniversary: Cognito Day approaches; the family has protest plans; Travis has a role in them — which conflicts with a work obligation. The clock starts ticking and the conflict is live.", "checked": false, "header": false}, {"id": "s70afvmv", "text": "Plant the Father: a small, easily-missed beat where the dad behaves in a way that will later read as \"he already knows about Mara\" — a too-careful kindness toward her, a deflected moment, a silence that lands wrong only in retrospect. Do not flag it.", "checked": false, "header": false}, {"id": "qo66y731", "text": "Travis retreats to his apartment — gamer-meets-stock-trader, crypto-bro-Patrick-Bateman, the aesthetic of a man who optimizes everything. The warmth of the kitchen vs. the sterility here = the gap, architecturally.", "checked": false, "header": false}, {"id": "79ao9gid", "text": "He digs into Michelle's files. Finds nothing but the fanfic. And — the coin — he doesn't just note it; he decides how to use it. He finds his angle against her. Starts something.", "checked": false, "header": false}, {"id": "aelqzmxh", "text": "WORLD RULES — The \"chose not to look\" subculture as a lived discipline. The amnesty line (Derek below it, truly clean; Travis just above it). The zealot/protest world from the inside (connects to Ch.4).", "checked": false, "header": false}, {"id": "19ve1m7a", "text": "SEEDS — The Father's knowledge (M7 reveal). Derek's innocence (the thing Travis is really protecting; future bomb). The anniversary obligation (escalates every Travis chapter). His angle on Michelle (feeds the office war). The fanfic as Michelle's only \"dirt\" (recontextualized when they collide in M5).", "checked": false, "header": false}, {"id": "cpdohea7", "text": "COIN — He commits to a plan — both the anniversary role he may not keep, and the angle on Michelle.", "checked": false, "header": false}, {"id": "h2kkp9sy", "text": "CLIFFHANGER — The plan crystallizes — or the work/family conflict forces a choice he postpones. End on intent.", "checked": false, "header": false}, {"id": "ha029jhc", "text": "VOICE — Bright and warm in the kitchen, cold and optimizing in the apartment — and the reader should feel the same person in both, which is the chilling part. The cost of his fluency humming underneath. Match the Ch.3 tell so the alert reader can connect them (and the rest get it on reread).", "checked": false, "header": false}]}, {"id": "f8pyvzyv", "pov": "Michelle", "body": "", "beats": [{"id": "7bbhh82d", "text": "JOB — Teach the world's rules (disclosure, looking-as-courtesy) where Ch.1 taught its temperature. Show Michelle falling for a file. Plant the \"off\" thing that becomes the Daniel scrub reveal.", "checked": false, "header": false}, {"id": "sqmdc1m0", "text": "OPEN ON — Michelle planning — not making a plan, executing one. She arranged everything; the assistant only booked it; she double-confirmed. The control is the character.", "checked": false, "header": false}, {"id": "0ojz52rt", "text": "Beats", "header": true}, {"id": "jx35uwzp", "text": "The prep: she's done this with surgical thoroughness. Establish how much of him she's researched — family, friends, coworkers.", "checked": false, "header": false}, {"id": "8kcjenyy", "text": "One last look at his history, and she falls in love with the file: the Roblox forums tied to gift purchases for his nephews — evidence of his goodness. She's not finding dirt; she's finding virtue, and swooning at a document. (The trap, named only by the reader.)", "checked": false, "header": false}, {"id": "jls52kv7", "text": "Daniel shows (placeholder). Real chemistry — the first time she's swooned in person, not at a screen.", "checked": false, "header": false}, {"id": "aznkok97", "text": "The rules, formalized: she discloses what she's seen off the bat — \"it's only a faux pas if you don't disclose\" — closing the gap as courtesy. He discloses what he's seen of hers (light touch on the fanfic — he found it charming, which disarms her). The reader now has the world's etiquette.", "checked": false, "header": false}, {"id": "cdrxetdk", "text": "The swoon deepens. Let it be genuinely lovely — the reader should want this for her.", "checked": false, "header": false}, {"id": "yz1rwnb9", "text": "The \"off\" thing — specific and re-readable. Suggestion: a micro-reaction to being recorded/photographed — when someone tries to take a photo, or a moment threatens to create a new permanent record, Daniel deflects with a smoothness that's a beat too practiced. (A scrubbed person is phobic about new records. Re-reads perfectly once we know.) Whatever you choose, make it concrete, a single thing the reader can hold and reinterpret — not vague unease.", "checked": false, "header": false}, {"id": "660mk0vj", "text": "The off thing snags her — the disqualification instinct she's been proudly disabling twitches awake. She needs a second.", "checked": false, "header": false}, {"id": "sm3jlnx8", "text": "WORLD RULES — Disclosure etiquette (\"faux pas only if you don't disclose\"). Looking is courtship, not surveillance. The gap-closing ideal as a social value, not just a fear.", "checked": false, "header": false}, {"id": "2vcqrgsw", "text": "SEEDS — The \"off\" behavior = the Daniel scrub reveal (M4). Daniel finding her fanfic charming = contrast with how the world weaponizes records (he disarmed her with the same data Travis would weaponize). Her swoon = makes the M4 disillusionment cost something.", "checked": false, "header": false}, {"id": "yyjtm395", "text": "COIN — She lets herself fall — and the instinct she disabled reactivates. State changed in both directions at once.", "checked": false, "header": false}, {"id": "pkfr5pi7", "text": "CLIFFHANGER — She excuses herself to the bathroom, unsettled. We don't yet know what she'll do there — vet him again? Talk herself out of the doubt? Cut.", "checked": false, "header": false}, {"id": "unblyh1i", "text": "VOICE — Controlled prose cracking open into unguarded romanticism — the fanfic-writer surfacing in real life. Let the seam she hid in Ch.2 show here.", "checked": false, "header": false}]}, {"id": "r20xveq9", "pov": "Paul", "body": "", "beats": [{"id": "eyh9ka5w", "text": "JOB — Paul at his most free and most unclean — and then the shame roars back when the one person whose judgment he can't bear arrives. Get Sadie to the door.", "checked": false, "header": false}, {"id": "w7bt7ncc", "text": "OPEN ON — Paul out, alive, a little kinky, enjoying the world's permissions. The upside at full volume — so the crash hits harder.", "checked": false, "header": false}, {"id": "daczm7d9", "text": "Beats", "header": true}, {"id": "3zzbrqcg", "text": "The club: the freedom embodied, sensory, a man tasting a world that no longer judges him.", "checked": false, "header": false}, {"id": "8db46l2l", "text": "The old neighbor: she recognizes him, offers comfort — she always thought his ex was a liar. It's meant kindly. Paul nervously agrees — and doesn't believe it. He accepts exoneration he knows he doesn't deserve (the Ch.1 flaw, operating again, now sharper).", "checked": false, "header": false}, {"id": "yk6dvhri", "text": "A beat of the cost under the comfort: the neighbor's kindness assumes a version of events Paul can't honestly endorse, and he takes it anyway because it's easier. Self-knowledge he flinches from.", "checked": false, "header": false}, {"id": "1oxmkmgz", "text": "The QR-code sex worker: on the way home, he picks her up — scans the code, enters requests, gets a quote, Apple Pays, she joins him. Frictionless, normalized, bleak, faintly funny. Peak five-minutes-future texture. Let the banality of the transaction do the work.", "checked": false, "header": false}, {"id": "cxi18ejj", "text": "Arrival at his door — and Sadie is waiting. (Pays off the unknown number from Ch.4.) She sees him arriving with the stranger.", "checked": false, "header": false}, {"id": "dex5i592", "text": "The instant collapse: the shame Paul believed he'd shed comes roaring back the second the one person whose judgment he can't bear is standing there. The whole post-shame freedom evaporates in her presence. He's nineteen-years-of-history naked in front of the only audience that matters.", "checked": false, "header": false}, {"id": "5078a6hf", "text": "WORLD RULES — The QR/Apple Pay sex economy (normalized, regulated-feeling, frictionless). How recognition works now (strangers know your story; comfort and judgment both come unsolicited).", "checked": false, "header": false}, {"id": "6hotzgon", "text": "SEEDS — Sadie at the door = the engine for the rest of the book. The sex worker as his first image to Sadie = the shame dynamic that governs the house. The neighbor's \"your ex was a liar\" = the unresolved truth about what actually happened (feeds the ambiguity).", "checked": false, "header": false}, {"id": "62zt0flm", "text": "COIN — Sadie arrives. Everything changes. (The biggest coin in the movement.)", "checked": false, "header": false}, {"id": "z3h9ko2o", "text": "CLIFFHANGER — His first image to his stepdaughter in years is this. Cut before either speaks — or on the first impossible beat of him trying to.", "checked": false, "header": false}, {"id": "5vd43zqq", "text": "VOICE — The warmth and freedom at their peak, then the prose contracting the instant he sees her — the voice itself losing its ease. Let the style enact the shame returning.", "checked": false, "header": false}]}, {"id": "6hhfd8oo", "pov": "Travis", "body": "", "beats": [{"id": "ha16q0n9", "text": "JOB — Take the architect into the world he publicly condemns and make him a hypocrite on the record. Render the underground as genuinely dangerous. End on the lesson he doesn't yet understand.", "checked": false, "header": false}, {"id": "2iq28nmu", "text": "OPEN ON — Travis sneaking out — the optimizer out of his element, scared, exposed. The crypto-bro confidence stripped away.", "checked": false, "header": false}, {"id": "tlshq2wr", "text": "Beats", "header": true}, {"id": "6m3vi5cn", "text": "The decision recommitted: he's doing this for Mara, for the family, for Derek. Tell himself it's love. (It is.)", "checked": false, "header": false}, {"id": "yx1hz6lk", "text": "The underground, rendered as unsafe — physically, morally. This is not a clean transaction like Paul's QR scan; it's a frightening, lawless world. Travis is out of his depth and knows it. The fear is the texture.", "checked": false, "header": false}, {"id": "whthaefh", "text": "Navigating the protocol — the cutout, the price (rich-people money for a full clean; he can afford it, barely, and what that costs him matters), the dread of being seen.", "checked": false, "header": false}, {"id": "e0wotp8t", "text": "The scrub happens. Mara's history — the human, myth-fatal thing — erased. Irreversible.", "checked": false, "header": false}, {"id": "vh1ehrik", "text": "The hypocrisy made literal: the exposer is now, on the record, a client of concealment. The man who built a machine to reveal has paid to hide. He knows it. He does it anyway.", "checked": false, "header": false}, {"id": "fmkon1a0", "text": "The ending beat — the lesson he can't yet read: he checks the record. Clean. Relief — and then the hollowness, because the secret is still in his head, and it's still in the world's. He just spent everything and learned nothing. (Seeds the analog rule: you can't scrub a person. M7 will prove it.)", "checked": false, "header": false}, {"id": "tq4z1dgi", "text": "WORLD RULES — The cleaning underground — how it works, what it costs, how dangerous it is, who can afford it (the class tell: a full clean is rich money). The contrast with the legal, frictionless QR economy of Ch.7 — concealment is the illegal economy now, because concealment is the only sin.", "checked": false, "header": false}, {"id": "dv7t6t0d", "text": "SEEDS — The scrub = the M5 list liability (Travis's name as a client). The hypocrisy = the engine of his whole arc. The \"learned nothing\" hollowness = the analog rule, paid off when Mara's caught anyway (M7). The cost of the clean = his finances/desperation (feeds the seat-gunning).", "checked": false, "header": false}, {"id": "binefknt", "text": "COIN — The scrub — irreversible, identity-defining. He is now what he hunts.", "checked": false, "header": false}, {"id": "4bb232zy", "text": "CLIFFHANGER — The clean record on the screen that changes nothing inside him. End the movement on the architect having committed his original sin — and on the dawning, unspoken sense that it didn't work the way he thought it would.", "checked": false, "header": false}, {"id": "0zharoi0", "text": "VOICE — Strip the Ch.5 confidence. The optimizer who controls everything, out of control. Fear in the prose. This is the first crack in Travis, and the reader should feel the person under the persona for the first time.", "checked": false, "header": false}]}, {"id": "4oe0degz", "pov": "M", "body": "", "beats": []}], "updatedAt": 0};
+
+const LS_KEY = 'cognito_manuscript_v1';
+let state = loadLocal();
+let ui = { view:'cover', chapterId:null, beatsVisible:true, sidebarOpen:false };
+let saveTimer=null;
+
+/* ---- cloud state ---- */
+let useCloud = !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey);
+let fbAuth=null, fbDb=null, fbUid=null, remoteApplying=false, cloudReady=false;
+
+/* ---------------------------- helpers ---------------------------------- */
+function uid(){ return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function loadLocal(){ try{ const s=localStorage.getItem(LS_KEY); if(s) return migrate(JSON.parse(s)); }catch(e){} return migrate(structuredClone(SEED)); }
+function migrate(st){ st.chapters=st.chapters||[]; st.chapters.forEach(c=>{ c.id=c.id||uid(); c.beats=c.beats||[]; c.beats.forEach(b=>b.id=b.id||uid()); c.body=c.body||''; }); return st; }
+
+function setStatus(kind){
+  const d=document.getElementById('statusDot'), t=document.getElementById('statusTxt');
+  if(!d) return;
+  d.className='dot '+kind;
+  t.textContent = kind==='saving'?'Saving\u2026' : kind==='cloud'?'Synced to cloud' : 'Saved on this device';
+}
+function scheduleSave(){
+  state.updatedAt=Date.now();
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ cloudSave().then(()=>setStatus(useCloud&&cloudReady?'cloud':'saved')); }, 600);
+}
+
+/* ----------------------------- navigation ------------------------------ */
+function go(view, chapterId){
+  ui.view=view; if(chapterId!==undefined) ui.chapterId=chapterId; ui.sidebarOpen=false;
+  renderApp();
+}
+function currentChapter(){ return state.chapters.find(c=>c.id===ui.chapterId)||null; }
+
+/* ============================ RENDER: SHELL ============================= */
+function renderApp(){
+  const root=document.getElementById('root');
+  root.innerHTML='';
+  const app=el(`<div class="app"></div>`);
+  app.appendChild(renderTopbar());
+  app.appendChild(renderSidebar());
+  const main=el(`<div class="main" id="main"></div>`);
+  app.appendChild(main);
+  root.appendChild(app);
+  renderMain(main);
+}
+
+function renderTopbar(){
+  const bar=el(`<div class="topbar">
+    <button class="tbtn hamb" id="hamb">\u2630</button>
+    <div class="brand">${esc(state.title||'Untitled')}<small>${esc(state.author||'')}</small></div>
+    <div class="topspace"></div>
+    <div class="status"><span class="dot ${useCloud&&cloudReady?'cloud':'saved'}" id="statusDot"></span><span id="statusTxt">${useCloud&&cloudReady?'Synced to cloud':'Saved on this device'}</span></div>
+    <button class="tbtn" id="btnView">View Novel</button>
+    <button class="tbtn" id="btnExpDocx">\u2193 .docx</button>
+    <button class="tbtn" id="btnExpPdf">\u2193 PDF</button>
+  </div>`);
+  bar.querySelector('#hamb').onclick=()=>{ ui.sidebarOpen=!ui.sidebarOpen; document.querySelector('.sidebar').classList.toggle('open',ui.sidebarOpen); };
+  bar.querySelector('#btnView').onclick=()=>go('novel');
+  bar.querySelector('#btnExpDocx').onclick=exportDocx;
+  bar.querySelector('#btnExpPdf').onclick=exportPdf;
+  return bar;
+}
+
+function renderSidebar(){
+  const sb=el(`<div class="sidebar ${ui.sidebarOpen?'open':''}"></div>`);
+  const top=el(`<div class="navsec">
+    <div class="navlabel">Front Matter</div>
+    <button class="navitem ${ui.view==='cover'?'active':''}" data-go="cover"><span class="ico">\u25C8</span> Cover Page</button>
+    <button class="navitem ${ui.view==='toc'?'active':''}" data-go="toc"><span class="ico">\u2630</span> Table of Contents</button>
+  </div>`);
+  top.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  sb.appendChild(top);
+
+  const sec=el(`<div class="navsec"><div class="navlabel">Chapters</div></div>`);
+  state.chapters.forEach((c,i)=>{
+    const row=el(`<div class="chrow">
+      <button class="navitem ${ui.view==='chapter'&&ui.chapterId===c.id?'active':''}">
+        <span class="ico">${i+1}</span> <span class="pov-label">${esc(c.pov||'Untitled POV')}</span>
+        <span class="chip">${beatProgress(c)}</span>
+      </button>
+      <button class="mini up" title="Move up">\u25B2</button>
+      <button class="mini dn" title="Move down">\u25BC</button>
+    </div>`);
+    row.querySelector('.navitem').onclick=()=>go('chapter',c.id);
+    row.querySelector('.up').onclick=(e)=>{e.stopPropagation();moveChapter(i,-1);};
+    row.querySelector('.dn').onclick=(e)=>{e.stopPropagation();moveChapter(i,1);};
+    sec.appendChild(row);
+  });
+  const add=el(`<button class="addbtn" style="margin-top:8px">+ Add Chapter</button>`);
+  add.onclick=openAddChapter;
+  sec.appendChild(add);
+  sb.appendChild(sec);
+
+  const dl=el(`<div class="navsec">
+    <div class="navdivider"></div>
+    <button class="navitem" data-go="novel"><span class="ico">\u25A4</span> View Whole Novel</button>
+    <button class="navitem" id="sbDocx"><span class="ico">\u2193</span> Download .docx</button>
+    <button class="navitem" id="sbPdf"><span class="ico">\u2193</span> Download PDF</button>
+  </div>`);
+  dl.querySelector('[data-go="novel"]').onclick=()=>go('novel');
+  dl.querySelector('#sbDocx').onclick=exportDocx;
+  dl.querySelector('#sbPdf').onclick=exportPdf;
+  sb.appendChild(dl);
+  return sb;
+}
+
+function beatProgress(c){
+  const items=c.beats.filter(b=>!b.header);
+  if(!items.length) return '0';
+  const done=items.filter(b=>b.checked).length;
+  return done+'/'+items.length;
+}
+function moveChapter(i,dir){
+  const j=i+dir; if(j<0||j>=state.chapters.length) return;
+  const a=state.chapters; [a[i],a[j]]=[a[j],a[i]]; scheduleSave(); renderApp();
+}
+
+/* ============================ RENDER: MAIN ============================== */
+function renderMain(main){
+  if(ui.view==='cover') return renderCover(main);
+  if(ui.view==='toc') return renderToc(main);
+  if(ui.view==='chapter') return renderChapter(main);
+  if(ui.view==='novel') return renderNovel(main);
+}
+
+/* ----- Cover ----- */
+function renderCover(main){
+  const card=el(`<div class="fieldcard">
+    <label>Title</label><input id="fTitle" value="${esc(state.title)}" />
+    <label>Author</label><input id="fAuthor" value="${esc(state.author)}" />
+  </div>`);
+  const page=el(`<div class="pagecol"><div class="page title">
+     <div class="booktitle">${esc(state.title)}</div>
+     <div class="byline">by <span class="auth">${esc(state.author)}</span></div>
+  </div></div>`);
+  const wrap=el(`<div class="sheetwrap"></div>`); 
+  const colL=el(`<div style="flex:0 0 6in;max-width:100%"></div>`);
+  colL.appendChild(card); colL.appendChild(page);
+  wrap.appendChild(colL);
+  main.appendChild(wrap);
+  const ti=card.querySelector('#fTitle'), au=card.querySelector('#fAuthor');
+  const bt=page.querySelector('.booktitle'), by=page.querySelector('.auth');
+  ti.oninput=()=>{ state.title=ti.value; bt.textContent=ti.value; document.querySelector('.brand').childNodes[0].textContent=ti.value; scheduleSave(); };
+  au.oninput=()=>{ state.author=au.value; by.textContent=au.value; document.querySelector('.brand small').textContent=au.value; scheduleSave(); };
+}
+
+/* ----- Table of Contents ----- */
+function renderToc(main){
+  const rows=state.chapters.map((c,i)=>`
+    <div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">\u2026</span></div>`).join('');
+  const page=el(`<div class="pagecol"><div class="page toc">
+    <h2>Contents</h2>
+    ${rows||'<div class="tocnote">No chapters yet.</div>'}
+    <div class="tocnote">This list updates automatically as you add or reorder chapters.<br/>Accurate page numbers are generated in the Word &amp; PDF exports.</div>
+  </div></div>`);
+  const wrap=el(`<div class="sheetwrap"></div>`); wrap.appendChild(page); main.appendChild(wrap);
+}
+
+/* ----- Chapter editor ----- */
+function renderChapter(main){
+  const c=currentChapter(); if(!c){ go('cover'); return; }
+  const idx=state.chapters.indexOf(c);
+  const tool=el(`<div class="toolrow">
+    <span><strong>Chapter ${idx+1}</strong></span>
+    <span id="wc"></span>
+    <span class="grow"></span>
+    <button class="ghost" id="toggleBeats">${ui.beatsVisible?'Hide beat sheet':'Show beat sheet'}</button>
+    <button class="ghost" id="delCh">Delete chapter</button>
+  </div>`);
+  const wrap=el(`<div class="sheetwrap ${ui.beatsVisible?'':'full'}"></div>`);
+
+  const pagecol=el(`<div class="pagecol"><div class="page">
+     <div class="ch-h1">Chapter ${idx+1}</div>
+     <div class="ch-pov" contenteditable="true" spellcheck="false">${esc(c.pov)}</div>
+     <div class="editor" contenteditable="true" spellcheck="true"></div>
+  </div></div>`);
+  const beats=el(`<div class="beats"></div>`);
+
+  wrap.appendChild(pagecol); wrap.appendChild(beats);
+  main.appendChild(tool); main.appendChild(wrap);
+
+  // POV editing
+  const pov=pagecol.querySelector('.ch-pov');
+  pov.addEventListener('input',()=>{ c.pov=pov.textContent.trim(); scheduleSave(); refreshSidebarLabels(); });
+
+  // Body editor
+  const ed=pagecol.querySelector('.editor');
+  setEditorContent(ed, c.body);
+  try{ document.execCommand('defaultParagraphSeparator',false,'p'); }catch(e){}
+  const updateWC=()=>{ tool.querySelector('#wc').textContent = wordCount(ed.innerText)+' words'; };
+  ed.addEventListener('input',()=>{ c.body=serializeEditor(ed); scheduleSave(); updateWC(); });
+  ed.addEventListener('paste',(e)=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text');
+    document.execCommand('insertText',false,t); });
+  updateWC();
+
+  tool.querySelector('#toggleBeats').onclick=()=>{
+    ui.beatsVisible=!ui.beatsVisible;
+    wrap.classList.toggle('full',!ui.beatsVisible);
+    tool.querySelector('#toggleBeats').textContent=ui.beatsVisible?'Hide beat sheet':'Show beat sheet';
+  };
+  tool.querySelector('#delCh').onclick=()=>{
+    if(confirm('Delete Chapter '+(idx+1)+' ('+(c.pov||'')+')? This cannot be undone.')){
+      state.chapters.splice(idx,1); scheduleSave(); go(state.chapters.length?'chapter':'cover', state.chapters[Math.max(0,idx-1)]?.id);
+    }
+  };
+  renderBeats(beats, c);
+}
+
+function refreshSidebarLabels(){
+  const sb=document.querySelector('.sidebar'); if(!sb) return;
+  const rows=sb.querySelectorAll('.pov-label');
+  state.chapters.forEach((c,i)=>{ if(rows[i]) rows[i].textContent=c.pov||'Untitled POV'; });
+}
+
+function renderBeats(container, c){
+  container.innerHTML='';
+  const items=c.beats.filter(b=>!b.header);
+  const done=items.filter(b=>b.checked).length;
+  const head=el(`<h3>Beat Sheet <span class="count">${done}/${items.length||0}</span></h3>`);
+  container.appendChild(head);
+  const list=el(`<div class="beatlist"></div>`);
+  if(!c.beats.length){ list.appendChild(el(`<div class="empty">No beats yet. Add targets for this chapter below, then check them off as you go.</div>`)); }
+  c.beats.forEach(b=>{
+    if(b.header){ list.appendChild(el(`<div class="beat hdr">${esc(b.text)}</div>`)); return; }
+    const row=el(`<div class="beat ${b.checked?'done':''}">
+      <input type="checkbox" ${b.checked?'checked':''}/>
+      <div class="txt" contenteditable="true" spellcheck="false">${esc(b.text)}</div>
+      <button class="del" title="Remove">\u2715</button>
+    </div>`);
+    row.querySelector('input').onchange=(e)=>{ b.checked=e.target.checked; row.classList.toggle('done',b.checked);
+      head.querySelector('.count').textContent = c.beats.filter(x=>!x.header&&x.checked).length+'/'+items.length;
+      updateChipFor(c); scheduleSave(); };
+    const txt=row.querySelector('.txt');
+    txt.addEventListener('input',()=>{ b.text=txt.textContent; scheduleSave(); });
+    row.querySelector('.del').onclick=()=>{ c.beats=c.beats.filter(x=>x.id!==b.id); scheduleSave(); renderBeats(container,c); updateChipFor(c); };
+    list.appendChild(row);
+  });
+  container.appendChild(list);
+  const add=el(`<div class="beatadd"><input placeholder="Add a beat\u2026"/><button>Add</button></div>`);
+  const inp=add.querySelector('input');
+  const doAdd=()=>{ const v=inp.value.trim(); if(!v) return; c.beats.push({id:uid(),text:v,checked:false,header:false}); inp.value=''; scheduleSave(); renderBeats(container,c); updateChipFor(c);
+    container.querySelector('.beatadd input').focus(); };
+  add.querySelector('button').onclick=doAdd;
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') doAdd(); });
+  container.appendChild(add);
+}
+function updateChipFor(c){
+  const sb=document.querySelector('.sidebar'); if(!sb) return;
+  const i=state.chapters.indexOf(c);
+  const rows=sb.querySelectorAll('.navsec')[1].querySelectorAll('.navitem .chip');
+  if(rows[i]) rows[i].textContent=beatProgress(c);
+}
+
+/* ----- Whole novel view ----- */
+function renderNovel(main){
+  const bar=el(`<div class="novelbar">
+    <button class="tbtn primary" id="nDocx">\u2193 Download .docx</button>
+    <button class="tbtn" id="nPdf">\u2193 Download PDF</button>
+    <span class="status">The full manuscript, assembled. Edits live in each section.</span>
+  </div>`);
+  bar.querySelector('#nDocx').onclick=exportDocx;
+  bar.querySelector('#nPdf').onclick=exportPdf;
+  main.appendChild(bar);
+
+  const pages=el(`<div class="novelpages"></div>`);
+  // title
+  pages.appendChild(el(`<div class="page title"><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
+  // toc
+  const tocrows=state.chapters.map((c,i)=>`<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">\u2026</span></div>`).join('');
+  pages.appendChild(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Page numbers are finalized in the Word &amp; PDF exports.</div></div>`));
+  // chapters
+  state.chapters.forEach((c,i)=>{
+    const body=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('')||'<p style="color:#bdb4a2">(empty)</p>';
+    pages.appendChild(el(`<div class="page"><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
+  });
+  main.appendChild(pages);
+}
+
+/* --------------------------- editor utils ------------------------------ */
+function setEditorContent(ed, body){
+  ed.innerHTML='';
+  const paras=(body||'').split('\n');
+  if(paras.length===1 && paras[0]===''){ ed.appendChild(el('<p><br></p>')); return; }
+  paras.forEach(p=>{ const node=document.createElement('p'); if(p==='') node.appendChild(document.createElement('br')); else node.textContent=p; ed.appendChild(node); });
+}
+function serializeEditor(ed){
+  // robust across <p>/<div>: innerText gives \n at block boundaries
+  return ed.innerText.replace(/\u00a0/g,' ').replace(/\n{3,}/g,'\n\n').replace(/\s+$/,'');
+}
+function wordCount(t){ const m=(t||'').trim().match(/\S+/g); return m?m.length:0; }
+
+/* =========================== ADD CHAPTER MODAL ========================== */
+function openAddChapter(){
+  const scrim=el(`<div class="scrim"><div class="modal">
+    <h2>Add Chapter</h2>
+    <p class="sub">Chapter ${state.chapters.length+1}. You can edit everything later.</p>
+    <label>POV character</label>
+    <input id="mPov" placeholder="e.g. Paul" />
+    <label>Beat sheet (optional)</label>
+    <textarea id="mBeats" placeholder="Paste outline notes for this chapter. Each line becomes a checkable item; lines starting with # become section headers; - [x] starts checked."></textarea>
+    <p class="hint">Tip: paste a whole section from your beat sheet \u2014 numbered beats, JOB / SEEDS / CLIFFHANGER lines, etc. become individual checklist items.</p>
+    <div class="row">
+      <button class="tbtn" id="mCancel">Cancel</button>
+      <button class="tbtn primary" id="mAdd">Add Chapter</button>
+    </div>
+  </div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('#mCancel').onclick=close;
+  scrim.querySelector('#mPov').focus();
+  scrim.querySelector('#mAdd').onclick=()=>{
+    const pov=scrim.querySelector('#mPov').value.trim()||'Untitled POV';
+    const beats=parseBeats(scrim.querySelector('#mBeats').value);
+    const ch={id:uid(),pov,body:'',beats};
+    state.chapters.push(ch); scheduleSave(); close(); go('chapter',ch.id);
+  };
+}
+function parseBeats(text){
+  const out=[]; if(!text) return out;
+  text.split('\n').forEach(raw=>{
+    let line=raw.replace(/\s+$/,'');
+    if(!line.trim()) return;
+    if(/^\s*#{1,6}\s+/.test(line)){ out.push({id:uid(),text:cleanMd(line.replace(/^\s*#{1,6}\s+/,'')),header:true}); return; }
+    let checked=false;
+    const m=line.match(/^\s*-\s*\[( |x|X)\]\s*(.*)$/);
+    if(m){ checked=m[1].toLowerCase()==='x'; line=m[2]; }
+    else line=line.replace(/^\s*[-*\u2022]\s+/,'').replace(/^\s*\d+[.)]\s+/,'');
+    out.push({id:uid(),text:cleanMd(line),checked,header:false});
+  });
+  return out;
+}
+function cleanMd(s){ return s.replace(/\*\*/g,'').replace(/(^|[^*])\*([^*]+)\*/g,'$1$2').replace(/`/g,'').replace(/^\s+|\s+$/g,''); }
+
+/* ============================ DOCX EXPORT ============================== */
+async function exportDocx(){
+  if(!window.docx){ alert('The document engine is still loading \u2014 try again in a moment (or check your connection).'); return; }
+  const D=window.docx;
+  const TWIP_IN=1440, body=[];
+
+  // Title page
+  body.push(new D.Paragraph({ alignment:D.AlignmentType.CENTER, spacing:{before:2600,after:240},
+    children:[ new D.TextRun({ text:state.title||'Untitled', bold:true, size:60 }) ]}));
+  body.push(new D.Paragraph({ alignment:D.AlignmentType.CENTER,
+    children:[ new D.TextRun({ text:'by '+(state.author||''), italics:true, size:26 }) ]}));
+  body.push(new D.Paragraph({ children:[ new D.PageBreak() ] }));
+
+  // Table of contents (real Word field; updates on open)
+  body.push(new D.Paragraph({ alignment:D.AlignmentType.CENTER, spacing:{after:240},
+    children:[ new D.TextRun({ text:'Contents', bold:true, size:32 }) ]}));
+  body.push(new D.TableOfContents('Contents', { hyperlink:true, headingStyleRange:'1-2' }));
+  body.push(new D.Paragraph({ children:[ new D.PageBreak() ] }));
+
+  // Chapters
+  state.chapters.forEach((c,i)=>{
+    if(i>0) body.push(new D.Paragraph({ children:[ new D.PageBreak() ] }));
+    body.push(new D.Paragraph({ heading:D.HeadingLevel.HEADING_1, spacing:{after:60},
+      children:[ new D.TextRun({ text:'Chapter '+(i+1) }) ]}));
+    body.push(new D.Paragraph({ heading:D.HeadingLevel.HEADING_2, spacing:{after:200},
+      children:[ new D.TextRun({ text:c.pov||'', italics:true }) ]}));
+    (c.body||'').split('\n').forEach(p=>{
+      if(!p.trim()) return;
+      body.push(new D.Paragraph({
+        spacing:{ line:480, lineRule:D.LineRuleType.AUTO },
+        indent:{ firstLine:720 },
+        children:[ new D.TextRun({ text:p }) ]
+      }));
+    });
+  });
+
+  const doc=new D.Document({
+    creator:state.author||'', title:state.title||'',
+    features:{ updateFields:true },
+    styles:{
+      default:{ document:{ run:{ font:'Georgia', size:24 } } },
+      paragraphStyles:[
+        { id:'Heading1', name:'Heading 1', basedOn:'Normal', next:'Normal', quickFormat:true,
+          run:{ font:'Georgia', size:34, bold:true, color:'000000' },
+          paragraph:{ spacing:{ before:240, after:60 }, keepNext:true } },
+        { id:'Heading2', name:'Heading 2', basedOn:'Normal', next:'Normal', quickFormat:true,
+          run:{ font:'Georgia', size:26, italics:true, color:'000000' },
+          paragraph:{ spacing:{ after:200 }, keepNext:true } }
+      ]
+    },
+    sections:[{
+      properties:{ page:{
+        size:{ width:6*TWIP_IN, height:9*TWIP_IN },
+        margin:{ top:TWIP_IN, right:TWIP_IN, bottom:TWIP_IN, left:TWIP_IN }
+      }},
+      children:body
+    }]
+  });
+
+  const blob=await D.Packer.toBlob(doc);
+  saveBlob(blob, safeName()+'.docx');
+}
+
+/* ============================= PDF EXPORT ============================== */
+function exportPdf(){
+  const w=window.open('','_blank');
+  if(!w){ alert('Please allow pop-ups to export the PDF, then try again.'); return; }
+  const chapters=state.chapters.map((c,i)=>{
+    const paras=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('');
+    return `<section class="chapter"><h1>Chapter ${i+1}</h1><h2>${esc(c.pov)}</h2>${paras}</section>`;
+  }).join('');
+  const toc=state.chapters.map((c,i)=>`<div class="tr"><span>Chapter ${i+1} &middot; <em>${esc(c.pov)}</em></span></div>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(safeName())}</title>
+  <style>
+    @page{ size:6in 9in; margin:1in; }
+    html,body{margin:0}
+    body{font-family:Georgia,'Times New Roman',serif;color:#000;font-size:12pt}
+    .titlepage{height:7in;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always}
+    .titlepage .t{font-size:30pt;font-weight:700;margin-bottom:12pt}
+    .titlepage .a{font-style:italic;font-size:13pt}
+    .toc{page-break-after:always}
+    .toc h1{text-align:center;font-size:16pt;margin:0 0 18pt}
+    .tr{padding:3pt 0;border-bottom:1px dotted #999}
+    .chapter{page-break-before:always}
+    .chapter h1{font-size:17pt;margin:0 0 2pt}
+    .chapter h2{font-size:13pt;font-style:italic;font-weight:400;margin:0 0 14pt}
+    .chapter p{text-indent:.5in;line-height:2;margin:0}
+  </style></head><body>
+    <div class="titlepage"><div class="t">${esc(state.title)}</div><div class="a">by ${esc(state.author)}</div></div>
+    <div class="toc"><h1>Contents</h1>${toc}</div>
+    ${chapters}
+    <script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+function safeName(){ return (state.title||'manuscript').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'manuscript'; }
+function saveBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500); }
+
+/* ============================ CLOUD SYNC =============================== */
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+
+async function initCloud(){
+  if(!useCloud) return;
+  const base='https://www.gstatic.com/firebasejs/10.12.5/';
+  await loadScript(base+'firebase-app-compat.js');
+  await loadScript(base+'firebase-auth-compat.js');
+  await loadScript(base+'firebase-firestore-compat.js');
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fbAuth=firebase.auth(); fbDb=firebase.firestore();
+  fbAuth.onAuthStateChanged(user=>{
+    if(user){ fbUid=user.uid; cloudReady=true; hideGate(); subscribeCloud(); }
+    else { fbUid=null; cloudReady=false; showGate(); }
+  });
+}
+function subscribeCloud(){
+  fbDb.collection('novels').doc(fbUid).onSnapshot(snap=>{
+    if(!snap.exists){ cloudSave(true); return; }
+    const data=snap.data();
+    if(!data || !data.payload) return;
+    // don't clobber while the user is actively editing a field
+    if(document.activeElement && /(INPUT|TEXTAREA)/.test(document.activeElement.tagName)) return;
+    if(document.activeElement && document.activeElement.isContentEditable) return;
+    try{
+      const remote=JSON.parse(data.payload);
+      if((remote.updatedAt||0) > (state.updatedAt||0)){
+        remoteApplying=true; state=migrate(remote); try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
+        renderApp(); remoteApplying=false; setStatus('cloud');
+      }
+    }catch(e){}
+  });
+}
+async function cloudSave(force){
+  if(!useCloud||!cloudReady||!fbUid||remoteApplying) return;
+  try{ await fbDb.collection('novels').doc(fbUid).set({ payload:JSON.stringify(state), updatedAt:state.updatedAt||Date.now() }, {merge:true}); }catch(e){}
+}
+
+/* ----- auth gate UI ----- */
+function showGate(){
+  if(document.getElementById('gate')) return;
+  const g=el(`<div class="gate" id="gate"><div class="gatecard">
+    <div class="brand">${esc(state.title||'Manuscript')}</div>
+    <div class="status" style="justify-content:center;margin-bottom:14px">Private workspace</div>
+    <input id="gEmail" type="email" placeholder="email" autocomplete="username"/>
+    <input id="gPass" type="password" placeholder="password" autocomplete="current-password"/>
+    <div class="err" id="gErr"></div>
+    <button class="tbtn primary" id="gLogin" style="width:100%">Log in</button>
+    <button class="linkbtn" id="gSignup">First time? Create my account</button>
+  </div></div>`);
+  document.body.appendChild(g);
+  const err=g.querySelector('#gErr');
+  const email=()=>g.querySelector('#gEmail').value.trim(), pass=()=>g.querySelector('#gPass').value;
+  g.querySelector('#gLogin').onclick=()=>{ err.textContent=''; fbAuth.signInWithEmailAndPassword(email(),pass()).catch(e=>err.textContent=e.message); };
+  g.querySelector('#gSignup').onclick=()=>{ err.textContent=''; fbAuth.createUserWithEmailAndPassword(email(),pass()).catch(e=>err.textContent=e.message); };
+  g.querySelector('#gPass').addEventListener('keydown',e=>{ if(e.key==='Enter') g.querySelector('#gLogin').click(); });
+}
+function hideGate(){ const g=document.getElementById('gate'); if(g) g.remove(); }
+
+/* =============================== BOOT ================================== */
+renderApp();
+if(useCloud){ initCloud().catch(e=>{ useCloud=false; console.warn('Cloud sync unavailable, using local mode.',e); }); }
+</script>
+</body>
+</html>
