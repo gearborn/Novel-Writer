@@ -517,12 +517,16 @@ function renderCover(main){
 
 /* ----- Table of Contents ----- */
 function renderToc(main){
-  const rows=state.chapters.map((c,i)=>`
-    <div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">\u2026</span></div>`).join('');
+  const map=computePageMap();
+  const rows=state.chapters.map((c,i)=>{
+    const e=map.byId[c.id];
+    return `
+    <div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
+  }).join('');
   const page=el(`<div class="pagecol"><div class="page toc">
     <h2>Contents</h2>
     ${rows||'<div class="tocnote">No chapters yet.</div>'}
-    <div class="tocnote">This list updates automatically as you add or reorder chapters.<br/>Accurate page numbers are generated in the Word &amp; PDF exports.</div>
+    <div class="tocnote">This list updates automatically as you add or reorder chapters.<br/>Page numbers are estimates \u2014 the Word &amp; PDF exports are authoritative.</div>
   </div></div>`);
   const wrap=el(`<div class="sheetwrap"></div>`); wrap.appendChild(page); main.appendChild(wrap);
 }
@@ -541,6 +545,7 @@ function renderChapter(main){
   const wrap=el(`<div class="sheetwrap ${ui.beatsVisible?'':'full'}"></div>`);
 
   const pagecol=el(`<div class="pagecol"><div class="page">
+     <div class="pagenum" id="chPageNum"></div>
      <div class="ch-h1">Chapter ${idx+1}</div>
      <div class="ch-pov" contenteditable="true" spellcheck="false">${esc(c.pov)}</div>
      <div class="editor" contenteditable="true" spellcheck="true"></div>
@@ -549,6 +554,10 @@ function renderChapter(main){
 
   wrap.appendChild(pagecol); wrap.appendChild(beats);
   main.appendChild(tool); main.appendChild(wrap);
+
+  // Live page number (estimated from book geometry; updates as you write).
+  const pn=pagecol.querySelector('#chPageNum');
+  const updatePageNum=()=>{ const m=computePageMap(); pn.textContent=pageLabel(m.byId[c.id]); };
 
   // POV editing
   const pov=pagecol.querySelector('.ch-pov');
@@ -559,10 +568,14 @@ function renderChapter(main){
   setEditorContent(ed, c.body);
   try{ document.execCommand('defaultParagraphSeparator',false,'p'); }catch(e){}
   const updateWC=()=>{ tool.querySelector('#wc').textContent = wordCount(ed.innerText)+' words'; };
-  ed.addEventListener('input',()=>{ c.body=serializeEditor(ed); scheduleSave(); updateWC(); });
+  ed.addEventListener('input',()=>{
+    c.body=serializeEditor(ed); scheduleSave(); updateWC();
+    clearTimeout(pageNumTimer); pageNumTimer=setTimeout(updatePageNum,250);
+  });
   ed.addEventListener('paste',(e)=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text');
     document.execCommand('insertText',false,t); });
   updateWC();
+  requestAnimationFrame(updatePageNum);
 
   tool.querySelector('#toggleBeats').onclick=()=>{
     ui.beatsVisible=!ui.beatsVisible;
@@ -635,15 +648,19 @@ function renderNovel(main){
 
   const pages=el(`<div class="novelpages"></div>`);
   const addPage=(node)=>{ const w=el(`<div class="pagescale"></div>`); w.appendChild(node); pages.appendChild(w); };
+  const map=computePageMap();
   // title
-  addPage(el(`<div class="page title"><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
-  // toc
-  const tocrows=state.chapters.map((c,i)=>`<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">\u2026</span></div>`).join('');
-  addPage(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Page numbers are finalized in the Word &amp; PDF exports.</div></div>`));
+  addPage(el(`<div class="page title"><div class="pagenum">${map.title.start}</div><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
+  // toc (with estimated start pages)
+  const tocrows=state.chapters.map((c,i)=>{
+    const e=map.byId[c.id];
+    return `<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
+  }).join('');
+  addPage(el(`<div class="page toc"><div class="pagenum">${map.toc.start}</div><h2>Contents</h2>${tocrows}<div class="tocnote">Estimated page numbers \u2014 the Word &amp; PDF exports are the authoritative pagination.</div></div>`));
   // chapters
   state.chapters.forEach((c,i)=>{
     const body=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('')||'<p style="color:#bdb4a2">(empty)</p>';
-    addPage(el(`<div class="page"><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
+    addPage(el(`<div class="page"><div class="pagenum">${pageLabel(map.byId[c.id])}</div><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
   });
   main.appendChild(pages);
   requestAnimationFrame(fitNovelPages);
@@ -667,6 +684,56 @@ function fitNovelPages(){
     w.style.width  = (pw*s)+'px';
     w.style.height = (ph*s)+'px';
   });
+}
+
+/* ------------------------- page numbering ------------------------------
+   Estimates manuscript page numbers from the real book geometry (6x9 page,
+   1in margins -> a 4in x 7in text column, 12pt double-spaced). Numbers update
+   automatically whenever content changes. These are accurate estimates; the
+   .docx export remains the authoritative pagination because Word does its
+   own line-breaking and widow/orphan handling.                            */
+let _measurer=null, pageNumTimer=null;
+function bodyMeasurer(){
+  if(!_measurer){
+    _measurer=document.createElement('div');
+    _measurer.setAttribute('aria-hidden','true');
+    _measurer.style.cssText='position:absolute;left:-99999px;top:0;width:4in;visibility:hidden;'+
+      'font-family:var(--serif);font-size:12pt;line-height:2';
+    document.body.appendChild(_measurer);
+  }
+  return _measurer;
+}
+function bodyHeightPx(body){
+  const m=bodyMeasurer();
+  const html=(body||'').split('\n').map(p=>p.trim()
+      ? `<p style="margin:0;text-indent:.5in">${esc(p)}</p>`
+      : '<p style="margin:0">&nbsp;</p>').join('');
+  m.innerHTML = html || '<p style="margin:0">&nbsp;</p>';
+  return m.offsetHeight; // CSS px (1in = 96px by spec)
+}
+function chapterPageCount(c){
+  const H=bodyHeightPx(c.body);
+  const FIRST=6.25*96; // first page loses ~0.75in to the chapter heading + POV
+  const FULL=7*96;     // full text column height
+  if(H<=FIRST) return 1;
+  return 1 + Math.ceil((H-FIRST)/FULL);
+}
+/* Returns {title:{start,pages}, toc:{start,pages}, byId:{cid:{start,end,pages}}, total} */
+function computePageMap(){
+  let page=1;
+  const map={ title:{start:1,pages:1}, byId:{} };
+  page+=1;                                   // after title page
+  map.toc={start:page,pages:1}; page+=1;     // after contents page
+  state.chapters.forEach(c=>{
+    const n=chapterPageCount(c);
+    map.byId[c.id]={start:page, end:page+n-1, pages:n};
+    page+=n;
+  });
+  map.total=page-1;
+  return map;
+}
+function pageLabel(entry){
+  return entry ? String(entry.start) : '';
 }
 
 /* --------------------------- editor utils ------------------------------ */
