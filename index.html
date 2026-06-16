@@ -650,13 +650,13 @@ function renderNovel(main){
   const addPage=(node)=>{ const w=el(`<div class="pagescale"></div>`); w.appendChild(node); pages.appendChild(w); };
   const map=computePageMap();
   // title
-  addPage(el(`<div class="page title"><div class="pagenum">${map.title.start}</div><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
+  addPage(el(`<div class="page title"><div class="booktitle">${esc(state.title)}</div><div class="byline">by <span class="auth">${esc(state.author)}</span></div></div>`));
   // toc (with estimated start pages)
   const tocrows=state.chapters.map((c,i)=>{
     const e=map.byId[c.id];
     return `<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
   }).join('');
-  addPage(el(`<div class="page toc"><div class="pagenum">${map.toc.start}</div><h2>Contents</h2>${tocrows}<div class="tocnote">Estimated page numbers \u2014 the Word &amp; PDF exports are the authoritative pagination.</div></div>`));
+  addPage(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Estimated page numbers \u2014 the Word &amp; PDF exports are the authoritative pagination.</div></div>`));
   // chapters
   state.chapters.forEach((c,i)=>{
     const body=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('')||'<p style="color:#bdb4a2">(empty)</p>';
@@ -718,12 +718,12 @@ function chapterPageCount(c){
   if(H<=FIRST) return 1;
   return 1 + Math.ceil((H-FIRST)/FULL);
 }
-/* Returns {title:{start,pages}, toc:{start,pages}, byId:{cid:{start,end,pages}}, total} */
+/* Returns {byId:{cid:{start,end,pages}}, total}. Numbering begins at the
+   first chapter (page 1) — the cover and contents pages are front matter and
+   are not counted, per standard book convention. */
 function computePageMap(){
   let page=1;
-  const map={ title:{start:1,pages:1}, byId:{} };
-  page+=1;                                   // after title page
-  map.toc={start:page,pages:1}; page+=1;     // after contents page
+  const map={ byId:{} };
   state.chapters.forEach(c=>{
     const n=chapterPageCount(c);
     map.byId[c.id]={start:page, end:page+n-1, pages:n};
