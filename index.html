@@ -83,7 +83,7 @@
   .pagenum{position:absolute;top:.5in;right:.6in;font-family:var(--serif);font-size:10pt;color:#9a917f;letter-spacing:.02em;pointer-events:none}
   .page .ch-h1{font-size:17pt;font-weight:700;margin:0 0 2pt;line-height:1.2}
   .page .ch-pov{font-size:13pt;font-style:italic;color:#332f27;margin:0 0 18pt;outline:none}
-  .page .ch-pov:empty:before{content:'POV character';color:#b6ae9d}
+  .page .ch-pov:empty:before{content:'Chapter title';color:#b6ae9d}
   .editor{font-size:12pt;line-height:2;outline:none;min-height:5in;overflow-wrap:break-word;word-break:normal}
   .editor:focus{outline:none}
   .editor p,.editor div{margin:0;text-indent:.5in;line-height:2;overflow-wrap:break-word}
@@ -105,6 +105,8 @@
   .fieldcard label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 5px}
   .fieldcard input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:15px;font-family:var(--serif);margin-bottom:12px}
   .fieldcard input:focus{outline:none;border-color:var(--accent)}
+  .fieldcard .chkline{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);margin:2px 0 0}
+  .fieldcard .chkline input{width:auto;margin:0}
   /* beats panel */
   .beats{flex:0 0 320px;width:320px;background:#fff;border:1px solid var(--line);border-radius:12px;align-self:stretch;display:flex;flex-direction:column;max-height:calc(100vh - 150px);position:sticky;top:0}
   .beats h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:8px}
@@ -218,7 +220,7 @@ function uid(){ return Math.random().toString(36).slice(2,9)+Date.now().toString
 function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function loadLocal(){ try{ const s=localStorage.getItem(LS_KEY); if(s) return migrate(JSON.parse(s)); }catch(e){} return migrate(structuredClone(SEED)); }
-function migrate(st){ st.chapters=st.chapters||[]; st.chapters.forEach(c=>{ c.id=c.id||uid(); c.beats=c.beats||[]; c.beats.forEach(b=>b.id=b.id||uid()); c.body=c.body||''; }); return st; }
+function migrate(st){ st.chapters=st.chapters||[]; st.chapters.forEach(c=>{ c.id=c.id||uid(); c.title=(c.title!=null)?c.title:(c.pov||''); delete c.pov; c.beats=c.beats||[]; c.beats.forEach(b=>b.id=b.id||uid()); c.body=c.body||''; }); return st; }
 
 /* ---- multi-book library ----
    A library is { books:[book...], currentId, updatedAt }. Each book has the
@@ -447,6 +449,8 @@ function go(view, chapterId){
   renderApp();
 }
 function currentChapter(){ return state.chapters.find(c=>c.id===ui.chapterId)||null; }
+function hasTitle(c){ return !!(c.title && String(c.title).trim()); }
+function chapLabel(c,i){ return hasTitle(c) ? c.title : ('Chapter '+(i+1)); }
 
 /* ----------------------------- books ---------------------------------- */
 function switchBook(id){
@@ -542,7 +546,7 @@ function renderSidebar(){
   state.chapters.forEach((c,i)=>{
     const row=el(`<div class="chrow">
       <button class="navitem ${ui.view==='chapter'&&ui.chapterId===c.id?'active':''}">
-        <span class="ico">${i+1}</span> <span class="pov-label">${esc(c.pov||'Untitled POV')}</span>
+        <span class="ico">${i+1}</span> <span class="pov-label">${esc(chapLabel(c,i))}</span>
         <span class="chip">${beatProgress(c)}</span>
       </button>
       <button class="mini up" title="Move up">\u25B2</button>
@@ -630,7 +634,7 @@ function renderToc(main){
   const rows=state.chapters.map((c,i)=>{
     const e=map.byId[c.id];
     return `
-    <div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
+    <div class="tocrow"><span>Chapter ${i+1}${hasTitle(c)?` <span class="pov">\u00b7 ${esc(c.title)}</span>`:''}</span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
   }).join('');
   const page=el(`<div class="pagecol"><div class="page toc">
     <h2>Contents</h2>
@@ -656,7 +660,7 @@ function renderChapter(main){
   const pagecol=el(`<div class="pagecol"><div class="page">
      <div class="pagenum" id="chPageNum"></div>
      <div class="ch-h1">Chapter ${idx+1}</div>
-     <div class="ch-pov" contenteditable="true" spellcheck="false">${esc(c.pov)}</div>
+     <div class="ch-pov" contenteditable="true" spellcheck="false">${esc(c.title||'')}</div>
      <div class="editor" contenteditable="true" spellcheck="true"></div>
   </div></div>`);
   const beats=el(`<div class="beats"></div>`);
@@ -668,9 +672,9 @@ function renderChapter(main){
   const pn=pagecol.querySelector('#chPageNum');
   const updatePageNum=()=>{ const m=computePageMap(); pn.textContent=pageLabel(m.byId[c.id]); };
 
-  // POV editing
-  const pov=pagecol.querySelector('.ch-pov');
-  pov.addEventListener('input',()=>{ c.pov=pov.textContent.trim(); scheduleSave(); refreshSidebarLabels(); });
+  // Chapter title (optional subheading)
+  const title=pagecol.querySelector('.ch-pov');
+  if(title) title.addEventListener('input',()=>{ c.title=title.textContent.trim(); scheduleSave(); refreshSidebarLabels(); });
 
   // Body editor
   const ed=pagecol.querySelector('.editor');
@@ -692,7 +696,7 @@ function renderChapter(main){
     tool.querySelector('#toggleBeats').textContent=ui.beatsVisible?'Hide beat sheet':'Show beat sheet';
   };
   tool.querySelector('#delCh').onclick=()=>{
-    if(confirm('Delete Chapter '+(idx+1)+' ('+(c.pov||'')+')? This cannot be undone.')){
+    if(confirm('Delete '+chapLabel(c,idx)+'? This cannot be undone.')){
       state.chapters.splice(idx,1); scheduleSave(); go(state.chapters.length?'chapter':'cover', state.chapters[Math.max(0,idx-1)]?.id);
     }
   };
@@ -702,7 +706,7 @@ function renderChapter(main){
 function refreshSidebarLabels(){
   const sb=document.querySelector('.sidebar'); if(!sb) return;
   const rows=sb.querySelectorAll('.pov-label');
-  state.chapters.forEach((c,i)=>{ if(rows[i]) rows[i].textContent=c.pov||'Untitled POV'; });
+  state.chapters.forEach((c,i)=>{ if(rows[i]) rows[i].textContent=chapLabel(c,i); });
 }
 
 function renderBeats(container, c){
@@ -763,13 +767,13 @@ function renderNovel(main){
   // toc (with estimated start pages)
   const tocrows=state.chapters.map((c,i)=>{
     const e=map.byId[c.id];
-    return `<div class="tocrow"><span>Chapter ${i+1} <span class="pov">\u00b7 ${esc(c.pov)}</span></span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
+    return `<div class="tocrow"><span>Chapter ${i+1}${hasTitle(c)?` <span class="pov">\u00b7 ${esc(c.title)}</span>`:''}</span><span class="pg">${e?e.start:'\u2026'}</span></div>`;
   }).join('');
   addPage(el(`<div class="page toc"><h2>Contents</h2>${tocrows}<div class="tocnote">Estimated page numbers \u2014 the Word &amp; PDF exports are the authoritative pagination.</div></div>`));
   // chapters
   state.chapters.forEach((c,i)=>{
     const body=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('')||'<p style="color:#bdb4a2">(empty)</p>';
-    addPage(el(`<div class="page"><div class="pagenum">${pageLabel(map.byId[c.id])}</div><div class="ch-h1">Chapter ${i+1}</div><div class="ch-pov">${esc(c.pov)}</div><div class="editor" style="line-height:2">${body}</div></div>`));
+    addPage(el(`<div class="page"><div class="pagenum">${pageLabel(map.byId[c.id])}</div><div class="ch-h1">Chapter ${i+1}</div>${hasTitle(c)?`<div class="ch-pov">${esc(c.title)}</div>`:''}<div class="editor" style="line-height:2">${body}</div></div>`));
   });
   main.appendChild(pages);
   requestAnimationFrame(fitNovelPages);
@@ -822,7 +826,7 @@ function bodyHeightPx(body){
 }
 function chapterPageCount(c){
   const H=bodyHeightPx(c.body);
-  const FIRST=6.25*96; // first page loses ~0.75in to the chapter heading + POV
+  const FIRST=(hasTitle(c)?6.25:6.55)*96; // first page loses room to the heading (+ title line if present)
   const FULL=7*96;     // full text column height
   if(H<=FIRST) return 1;
   return 1 + Math.ceil((H-FIRST)/FULL);
@@ -863,8 +867,7 @@ function openAddChapter(){
   const scrim=el(`<div class="scrim"><div class="modal">
     <h2>Add Chapter</h2>
     <p class="sub">Chapter ${state.chapters.length+1}. You can edit everything later.</p>
-    <label>POV character</label>
-    <input id="mPov" placeholder="e.g. Paul" />
+    <label>Chapter title (optional)</label><input id="mTitle" placeholder="e.g. Paul" />
     <label>Beat sheet (optional)</label>
     <textarea id="mBeats" placeholder="Paste outline notes for this chapter. Each line becomes a checkable item; lines starting with # become section headers; - [x] starts checked."></textarea>
     <p class="hint">Tip: paste a whole section from your beat sheet \u2014 numbered beats, JOB / SEEDS / CLIFFHANGER lines, etc. become individual checklist items.</p>
@@ -877,11 +880,11 @@ function openAddChapter(){
   const close=()=>scrim.remove();
   scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('#mCancel').onclick=close;
-  scrim.querySelector('#mPov').focus();
+  scrim.querySelector('#mTitle').focus();
   scrim.querySelector('#mAdd').onclick=()=>{
-    const pov=scrim.querySelector('#mPov').value.trim()||'Untitled POV';
+    const title=scrim.querySelector('#mTitle').value.trim();
     const beats=parseBeats(scrim.querySelector('#mBeats').value);
-    const ch={id:uid(),pov,body:'',beats};
+    const ch={id:uid(),title,body:'',beats};
     state.chapters.push(ch); scheduleSave(); close(); go('chapter',ch.id);
   };
 }
@@ -925,8 +928,10 @@ async function exportDocx(){
     if(i>0) body.push(new D.Paragraph({ children:[ new D.PageBreak() ] }));
     body.push(new D.Paragraph({ heading:D.HeadingLevel.HEADING_1, spacing:{after:60},
       children:[ new D.TextRun({ text:'Chapter '+(i+1) }) ]}));
-    body.push(new D.Paragraph({ heading:D.HeadingLevel.HEADING_2, spacing:{after:200},
-      children:[ new D.TextRun({ text:c.pov||'', italics:true }) ]}));
+    if(hasTitle(c)){
+      body.push(new D.Paragraph({ heading:D.HeadingLevel.HEADING_2, spacing:{after:200},
+        children:[ new D.TextRun({ text:c.title, italics:true }) ]}));
+    }
     (c.body||'').split('\n').forEach(p=>{
       if(!p.trim()) return;
       body.push(new D.Paragraph({
@@ -970,9 +975,10 @@ function exportPdf(){
   if(!w){ alert('Please allow pop-ups to export the PDF, then try again.'); return; }
   const chapters=state.chapters.map((c,i)=>{
     const paras=(c.body||'').split('\n').map(p=>p.trim()?`<p>${esc(p)}</p>`:'').join('');
-    return `<section class="chapter"><h1>Chapter ${i+1}</h1><h2>${esc(c.pov)}</h2>${paras}</section>`;
+    const subLine = hasTitle(c) ? `<h2>${esc(c.title)}</h2>` : '';
+    return `<section class="chapter"><h1>Chapter ${i+1}</h1>${subLine}${paras}</section>`;
   }).join('');
-  const toc=state.chapters.map((c,i)=>`<div class="tr"><span>Chapter ${i+1} &middot; <em>${esc(c.pov)}</em></span></div>`).join('');
+  const toc=state.chapters.map((c,i)=>`<div class="tr"><span>Chapter ${i+1}${hasTitle(c)?` &middot; <em>${esc(c.title)}</em>`:''}</span></div>`).join('');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(safeName())}</title>
   <style>
     @page{ size:6in 9in; margin:1in; }
