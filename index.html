@@ -46,6 +46,12 @@
   #banner .bx{border:none;background:none;font-size:18px;line-height:1;padding:2px 6px;opacity:.85}
   .navbackup{border:1px solid var(--line)!important}
   .navbackup:hover{background:var(--accent-soft)}
+  .bookrow{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+  .bookrow .bsel{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bookrow.active .bsel{background:var(--accent-soft);border-color:var(--accent)}
+  .bookrow .bdel{opacity:0;border:none;background:none;color:var(--muted);font-size:15px;padding:2px 6px;border-radius:6px}
+  .bookrow:hover .bdel{opacity:1}
+  .bookrow .bdel:hover{background:#f0e6e6;color:#7a1f1f}
   /* ---------- sidebar ---------- */
   .sidebar{background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:12px}
   .navsec{margin-bottom:18px}
@@ -189,9 +195,11 @@ const FIREBASE_CONFIG =
 const SEED = {"title": "COGNITO", "author": "Corey Hanley", "chapters": [{"id": "876tkfwb", "pov": "Paul", "body": "", "beats": [{"id": "7j0b05am", "text": "JOB — Teach the world's emotional temperature through one dinner. Establish Paul as settled-but-secretly-unclean. Make the reader the prude.", "checked": false, "header": false}, {"id": "tzmtaful", "text": "OPEN ON — The most familiar scene in fiction, played straight — Paul outside the restaurant, early, checking his reflection in the window, the small rituals of a nervous man back in the dating world. Let the reader relax into a genre they recognize. Give them three or four paragraphs of normal before you pull the floor out.", "checked": false, "header": false}, {"id": "lsk3y4lw", "text": "Beats", "header": true}, {"id": "uj34yk32", "text": "Pre-date interiority: Paul's small comforts, his routines, the texture of his okay-ness. Seed the thing his ease steps around — unnamed, a half-second snag — then move past it.", "checked": false, "header": false}, {"id": "6h15g56o", "text": "She arrives (placeholder: Renata). Surface-charming small talk; the reader still thinks they're in a rom-com.", "checked": false, "header": false}, {"id": "yyqujvpj", "text": "Paul lances the boil himself: he raises the stepdaughter searches, framed as a self-deprecating joke. Beat of the reader thinking oof, brave.", "checked": false, "header": false}, {"id": "7x3zin5l", "text": "It wasn't a joke — and it doesn't land as a bomb. Renata waves it off and tables her own catalog as ordinary getting-to-know-you (the bondage; the interracial-shaming videos; \"any siblings?\"). The world tilts. This is not the world we know.", "checked": false, "header": false}, {"id": "q0wtnk5d", "text": "Paul's private contradiction running under the scene: he morally ranks her catalog against his, wonders if she's worse, wonders if she's racist — and reaches for moral distinctions the culture no longer stocks. He knew before tonight that she'd been outed for racist posts, and he chose her partly for it — a worse sin to stand above. Never state this. Let it operate.", "checked": false, "header": false}, {"id": "7p1vleia", "text": "A flicker of the thing he can't enjoy: she offers him the cheap absolution the world hands everyone (\"we all looked things up after Game of Thrones, whatever\") — and he can't take it, because he knows his version wasn't just the algorithm. He smiles and accepts it anyway.", "checked": false, "header": false}, {"id": "11l7w7tq", "text": "End of dinner: ambiguous chemistry, unresolved. The date \"went fine.\" That's almost the horror.", "checked": false, "header": false}, {"id": "41433uxr", "text": "WORLD RULES — Shame is dead as social currency. Dating means your worst searches are on your profile. Disclosure-as-courtesy (lightly — Ch.6 will formalize it). Cancellation barely sticks now (Renata, outed and dining out fine). \"Before Cognito\" used casually, like \"before COVID.\"", "checked": false, "header": false}, {"id": "fjp2qjtu", "text": "SEEDS — Paul's comparative-shame flaw (the arc he sheds by the climax). His inability to take cheap absolution (recurs Ch.7 with the neighbor). The unnamed snag = Sadie, withheld.", "checked": false, "header": false}, {"id": "ceao3akg", "text": "COIN — Paul lets himself believe he's the better person at this table — the self-deception he'll have to lose.", "checked": false, "header": false}, {"id": "eykksagd", "text": "CLIFFHANGER — Walking home, unfiled — a little ashamed of how relieved he is to have found someone worse. (Soft button; the engine is character, not plot. That's correct for an opener.)", "checked": false, "header": false}, {"id": "npk3yj0w", "text": "VOICE — Settled, wry, warm. Comfort as provocation. The prose should be comfortable in a way that unsettles the reader, because Paul isn't narrating any of this as horrifying.", "checked": false, "header": false}]}, {"id": "zzbmorz1", "pov": "Michelle", "body": "", "beats": [{"id": "e4fdxqyy", "text": "JOB — Establish her world, her flaw, the seat, Sloane, Travis-in-background — and light the work engine with a deadline. End by pointing her at Paul.", "checked": false, "header": false}, {"id": "ld0xfprg", "text": "OPEN ON — Michelle mid-competence-theater — running a room, precise, controlled, seeming capable. Then a crack: a question she can't answer, a decision she fakes. Establish \"clean got her here; clean isn't capable.\"", "checked": false, "header": false}, {"id": "1kj7gecq", "text": "Beats", "header": true}, {"id": "gayvqoe3", "text": "The seat, and her precariousness in it. She inherited a chair she can't fully fill.", "checked": false, "header": false}, {"id": "jzhw9f68", "text": "Sloane Hartwell above her — exposed like everyone, immune like no one. One small demonstration of the rich rule (Sloane untouched by something that would end an employee). Shown, not said.", "checked": false, "header": false}, {"id": "bcx1h939", "text": "Travis in the background — warm, useful, universally liked; he does something genuinely helpful or charming here. Plant him as good company so his Ch.3/Ch.5 harshness lands as contrast. Michelle half-clocks him as a threat and half-likes him, which annoys her.", "checked": false, "header": false}, {"id": "kxix6yxp", "text": "The project: a stalled relaunch of a dormant Hartwell franchise (placeholder). It's going wrong, and the missing piece — why a prior deal was structured/killed the way it was — exists in exactly one head. The institutional memory was purged.", "checked": false, "header": false}, {"id": "gcch6q32", "text": "The deadline: Sloane wants it by a board date. Her seat depends on delivering. Now the work engine has a clock.", "checked": false, "header": false}, {"id": "6cmvgcnc", "text": "She pulls the file of the man who'd know — Paul's record — and reads it the way the world reads it: the searches, the TikTok story, the resignation coverage. Files him: that guy. A flash of distaste; she closes the tab.", "checked": false, "header": false}, {"id": "vrnyb8al", "text": "But the deadline doesn't care about her distaste. She realizes she has to find him.", "checked": false, "header": false}, {"id": "h3myo971", "text": "WORLD RULES — The purge (old guard gone, institutional memory with them). The seat's three-way legitimacy (hers = clean record). Sloane = the rich exception. Vetting/looking is normal, instant, unremarked.", "checked": false, "header": false}, {"id": "d96xr6ex", "text": "SEEDS — The project deadline drives the M2 alliance. Michelle filing Paul from the record = the exact judgment Movement Six will detonate (she'll re-read this same file and find it no longer fits). Travis-as-likable = the contrast the whole Travis design needs. Plant the fanfic obliquely if you want (something she keeps off her own work machine).", "checked": false, "header": false}, {"id": "9hnvanqn", "text": "COIN — She resolves to track down the man she just filed as beneath her.", "checked": false, "header": false}, {"id": "83e3bnb8", "text": "CLIFFHANGER — The decision to find Paul — and a beat of dread or distaste about needing him specifically.", "checked": false, "header": false}, {"id": "ythd02ah", "text": "VOICE — Controlled, precise, a little armored. Let one seam show — a private warmth or romanticism she'd never display at work (the tell that becomes the fanfic).", "checked": false, "header": false}]}, {"id": "ntalypqu", "pov": "@", "body": "", "beats": [{"id": "0mm9rf9r", "text": "JOB — Deliver Paul's \"file\" as a weapon being built — and implicate the reader in the conspiracy logic. The book's method (record vs. human) executed as form in one chapter.", "checked": false, "header": false}, {"id": "nobtazv8", "text": "OPEN ON — A screen. An unnamed \"he,\" mid-assembly. The chapter is headed with the account's handle, not a name. We do not know it's Travis.", "checked": false, "header": false}, {"id": "r3eje084", "text": "Beats", "header": true}, {"id": "34qdt9e6", "text": "Establish the work-in-progress: he's building an edit/exposé on Paul. The craft of it — the cuts, the framing, the music of outrage.", "checked": false, "header": false}, {"id": "zrpjnhft", "text": "Ride his mind connecting dots: this search plus this timestamp plus this Instagram visit must mean this; and if that's true, then look what else lines up. Seductive detective logic. Let the reader feel the dopamine of the pattern clicking. Let them agree for a while.", "checked": false, "header": false}, {"id": "zdbobze3", "text": "Escalate the leaps by degrees until one is a hair too far — a connection built on a connection, a \"must have\" presented as \"did.\" The reader should feel, faintly, wait — then get pulled back into the momentum.", "checked": false, "header": false}, {"id": "abs3emwd", "text": "His certainty is total and sincere — he believes he's doing justice, not malice. Never a mustache. This is a true believer.", "checked": false, "header": false}, {"id": "63pakm5p", "text": "The damning portrait of Paul lands at full Nick-Shirley intensity: loose facts taken to ugly extremes. (This is also the reader's second version of Paul — after Ch.1's human, now the monster-edit. The gap between them is the point.)", "checked": false, "header": false}, {"id": "dblbq0mr", "text": "The numbers, the audience, the dopamine of the metrics. A glimpse of why he does it that isn't (only) cruelty.", "checked": false, "header": false}, {"id": "rig5ym4x", "text": "WORLD RULES — The exposure-account ecosystem; how the database gets weaponized (raw data → narrative). That a \"file\" is raw material anyone can edit into a story.", "checked": false, "header": false}, {"id": "v7jh91z8", "text": "SEEDS — Plant one tell — a verbal tic, a phrase, an aesthetic fingerprint — that pays off when the handle is unmasked as Travis. The conspiracy-logic texture sets up the reader's later complicity (they believed the edit too). This is the account that destroyed Paul (already known from Ch.2's file); now we've met its hand.", "checked": false, "header": false}, {"id": "c2z8i1qz", "text": "COIN — He hits publish.", "checked": false, "header": false}, {"id": "5rsuvjk4", "text": "CLIFFHANGER — The post goes live. Cut away before it lands. The weapon is fired; the blast is off-page. (We feel its damage in M2.)", "checked": false, "header": false}, {"id": "kaixtzda", "text": "VOICE — Bright, certain, conspiratorial, propulsive. The fluency is seductive. The reader should enjoy being in this head and feel a little dirty about it. Critically: do not let the prose wink at the reader that he's the villain — play his sincerity straight.", "checked": false, "header": false}]}, {"id": "5r840whj", "pov": "Paul", "body": "", "beats": [{"id": "pha176k0", "text": "JOB — Show Paul's freedom AND its limit. He can't reopen the one door he wants; that's why he's sliding into distraction. Seed his need for Michelle. Introduce the zealots with a cost.", "checked": false, "header": false}, {"id": "f1vr21e3", "text": "OPEN ON — Paul enjoying the new world — the genuine fun and freedom of it, the first real taste of the upside. Let it be appealing before you complicate it.", "checked": false, "header": false}, {"id": "oq3e87ws", "text": "Beats", "header": true}, {"id": "6w61g475", "text": "The pleasure of the post-shame world, for real. People who know everything and stay anyway. He's lighter than he's ever been.", "checked": false, "header": false}, {"id": "dcl8392f", "text": "The shadow under it: he's been trying to monetize his institutional knowledge — consulting, advising, quietly reaching out — and no one will hire the name. The freedom is partly a consolation for a door that won't reopen.", "checked": false, "header": false}, {"id": "h5k5h5de", "text": "A specific failed attempt — a meeting that goes nowhere, a call not returned — so the rejection is dramatized, not summarized. He privately admits he can't do this alone. (This is the need Michelle meets in M2.)", "checked": false, "header": false}, {"id": "wzenud6j", "text": "The distractions intensify because of the rejection — the club, the appetites, framed as a man filling a professional void with sensation.", "checked": false, "header": false}, {"id": "u74qdp6z", "text": "The zealots: first real encounter with the religious anti-shamelessness movement — a protest, a pamphlet, a confrontation. It must cost or tempt: someone recognizes him (he's a poster child for what they hate), OR an unwelcome flicker of his own buried sympathy for their position (he, of all people, knows the cost of a world with no shame). Don't let them be wallpaper.", "checked": false, "header": false}, {"id": "729jf523", "text": "Sadie seed: an unknown number calls; he doesn't recognize it; he doesn't pick up. (It's Sadie; she's changed her number. Pays off Ch.7.)", "checked": false, "header": false}, {"id": "y3d2pl4h", "text": "WORLD RULES — The zealot movement as a real political force. The post-Cognito employment reality (who's unhireable, who isn't). The texture of the underground/sex-work economy (sets up Ch.7's QR scene).", "checked": false, "header": false}, {"id": "ucs3fjm3", "text": "SEEDS — Paul's need = M2 alliance. The zealots = recurring antagonist that hunts him (and Travis's family adjacent to that world). The unknown number = Sadie at the door. His buried sympathy for the zealots = complicates him.", "checked": false, "header": false}, {"id": "3u530n79", "text": "COIN — Paul confirms — to himself — that he cannot get back in alone.", "checked": false, "header": false}, {"id": "ebponqmp", "text": "CLIFFHANGER — The phone, the unknown number, the choice not to answer. (Quiet dread.)", "checked": false, "header": false}, {"id": "pwfq73rf", "text": "VOICE — Same warmth as Ch.1, now with the ache underneath more visible. The fun should read as fun; the reader should like his freedom before clocking its cost.", "checked": false, "header": false}]}, {"id": "ymcz223t", "pov": "Travis", "body": "", "beats": [{"id": "o1pz7msg", "text": "JOB — Reveal the architect's domestic life — the trad idyll, the brother, the family religion — and contrast it hard against Ch.3's hand. Light the anniversary clock. Decide his angle on Michelle. Plant the Father.", "checked": false, "header": false}, {"id": "ozyb6t72", "text": "OPEN ON — Mara's kitchen. Warmth, cooking smells, the laundry she still does for him. The most wholesome possible frame around the coldest possible character.", "checked": false, "header": false}, {"id": "q4s6d19n", "text": "Beats", "header": true}, {"id": "xotcbhqv", "text": "The idyll: Travis lives close enough for independence but comes home nightly. Mara cooks; she does his laundry; it's comfortable, loving, real. Let the warmth be genuine — it's what makes him relatable.", "checked": false, "header": false}, {"id": "mqkl3nln", "text": "Derek (9, twelve years younger): innocent, adoring, close with Travis. Establish the bond. Plant that Derek is the truly blank slate — born into the after, will never know a pre-Cognito world. Travis is protective of that innocence in a way he can't fully articulate.", "checked": false, "header": false}, {"id": "fm21tsf1", "text": "The family religion: in passing, naturally — they don't look at each other's histories. Purity as identity. The parents disapprove of Travis's job (vague to them) but let him make his own mistakes.", "checked": false, "header": false}, {"id": "x6t8d0n7", "text": "The anniversary: Cognito Day approaches; the family has protest plans; Travis has a role in them — which conflicts with a work obligation. The clock starts ticking and the conflict is live.", "checked": false, "header": false}, {"id": "s70afvmv", "text": "Plant the Father: a small, easily-missed beat where the dad behaves in a way that will later read as \"he already knows about Mara\" — a too-careful kindness toward her, a deflected moment, a silence that lands wrong only in retrospect. Do not flag it.", "checked": false, "header": false}, {"id": "qo66y731", "text": "Travis retreats to his apartment — gamer-meets-stock-trader, crypto-bro-Patrick-Bateman, the aesthetic of a man who optimizes everything. The warmth of the kitchen vs. the sterility here = the gap, architecturally.", "checked": false, "header": false}, {"id": "79ao9gid", "text": "He digs into Michelle's files. Finds nothing but the fanfic. And — the coin — he doesn't just note it; he decides how to use it. He finds his angle against her. Starts something.", "checked": false, "header": false}, {"id": "aelqzmxh", "text": "WORLD RULES — The \"chose not to look\" subculture as a lived discipline. The amnesty line (Derek below it, truly clean; Travis just above it). The zealot/protest world from the inside (connects to Ch.4).", "checked": false, "header": false}, {"id": "19ve1m7a", "text": "SEEDS — The Father's knowledge (M7 reveal). Derek's innocence (the thing Travis is really protecting; future bomb). The anniversary obligation (escalates every Travis chapter). His angle on Michelle (feeds the office war). The fanfic as Michelle's only \"dirt\" (recontextualized when they collide in M5).", "checked": false, "header": false}, {"id": "cpdohea7", "text": "COIN — He commits to a plan — both the anniversary role he may not keep, and the angle on Michelle.", "checked": false, "header": false}, {"id": "h2kkp9sy", "text": "CLIFFHANGER — The plan crystallizes — or the work/family conflict forces a choice he postpones. End on intent.", "checked": false, "header": false}, {"id": "ha029jhc", "text": "VOICE — Bright and warm in the kitchen, cold and optimizing in the apartment — and the reader should feel the same person in both, which is the chilling part. The cost of his fluency humming underneath. Match the Ch.3 tell so the alert reader can connect them (and the rest get it on reread).", "checked": false, "header": false}]}, {"id": "f8pyvzyv", "pov": "Michelle", "body": "", "beats": [{"id": "7bbhh82d", "text": "JOB — Teach the world's rules (disclosure, looking-as-courtesy) where Ch.1 taught its temperature. Show Michelle falling for a file. Plant the \"off\" thing that becomes the Daniel scrub reveal.", "checked": false, "header": false}, {"id": "sqmdc1m0", "text": "OPEN ON — Michelle planning — not making a plan, executing one. She arranged everything; the assistant only booked it; she double-confirmed. The control is the character.", "checked": false, "header": false}, {"id": "0ojz52rt", "text": "Beats", "header": true}, {"id": "jx35uwzp", "text": "The prep: she's done this with surgical thoroughness. Establish how much of him she's researched — family, friends, coworkers.", "checked": false, "header": false}, {"id": "8kcjenyy", "text": "One last look at his history, and she falls in love with the file: the Roblox forums tied to gift purchases for his nephews — evidence of his goodness. She's not finding dirt; she's finding virtue, and swooning at a document. (The trap, named only by the reader.)", "checked": false, "header": false}, {"id": "jls52kv7", "text": "Daniel shows (placeholder). Real chemistry — the first time she's swooned in person, not at a screen.", "checked": false, "header": false}, {"id": "aznkok97", "text": "The rules, formalized: she discloses what she's seen off the bat — \"it's only a faux pas if you don't disclose\" — closing the gap as courtesy. He discloses what he's seen of hers (light touch on the fanfic — he found it charming, which disarms her). The reader now has the world's etiquette.", "checked": false, "header": false}, {"id": "cdrxetdk", "text": "The swoon deepens. Let it be genuinely lovely — the reader should want this for her.", "checked": false, "header": false}, {"id": "yz1rwnb9", "text": "The \"off\" thing — specific and re-readable. Suggestion: a micro-reaction to being recorded/photographed — when someone tries to take a photo, or a moment threatens to create a new permanent record, Daniel deflects with a smoothness that's a beat too practiced. (A scrubbed person is phobic about new records. Re-reads perfectly once we know.) Whatever you choose, make it concrete, a single thing the reader can hold and reinterpret — not vague unease.", "checked": false, "header": false}, {"id": "660mk0vj", "text": "The off thing snags her — the disqualification instinct she's been proudly disabling twitches awake. She needs a second.", "checked": false, "header": false}, {"id": "sm3jlnx8", "text": "WORLD RULES — Disclosure etiquette (\"faux pas only if you don't disclose\"). Looking is courtship, not surveillance. The gap-closing ideal as a social value, not just a fear.", "checked": false, "header": false}, {"id": "2vcqrgsw", "text": "SEEDS — The \"off\" behavior = the Daniel scrub reveal (M4). Daniel finding her fanfic charming = contrast with how the world weaponizes records (he disarmed her with the same data Travis would weaponize). Her swoon = makes the M4 disillusionment cost something.", "checked": false, "header": false}, {"id": "yyjtm395", "text": "COIN — She lets herself fall — and the instinct she disabled reactivates. State changed in both directions at once.", "checked": false, "header": false}, {"id": "pkfr5pi7", "text": "CLIFFHANGER — She excuses herself to the bathroom, unsettled. We don't yet know what she'll do there — vet him again? Talk herself out of the doubt? Cut.", "checked": false, "header": false}, {"id": "unblyh1i", "text": "VOICE — Controlled prose cracking open into unguarded romanticism — the fanfic-writer surfacing in real life. Let the seam she hid in Ch.2 show here.", "checked": false, "header": false}]}, {"id": "r20xveq9", "pov": "Paul", "body": "", "beats": [{"id": "eyh9ka5w", "text": "JOB — Paul at his most free and most unclean — and then the shame roars back when the one person whose judgment he can't bear arrives. Get Sadie to the door.", "checked": false, "header": false}, {"id": "w7bt7ncc", "text": "OPEN ON — Paul out, alive, a little kinky, enjoying the world's permissions. The upside at full volume — so the crash hits harder.", "checked": false, "header": false}, {"id": "daczm7d9", "text": "Beats", "header": true}, {"id": "3zzbrqcg", "text": "The club: the freedom embodied, sensory, a man tasting a world that no longer judges him.", "checked": false, "header": false}, {"id": "8db46l2l", "text": "The old neighbor: she recognizes him, offers comfort — she always thought his ex was a liar. It's meant kindly. Paul nervously agrees — and doesn't believe it. He accepts exoneration he knows he doesn't deserve (the Ch.1 flaw, operating again, now sharper).", "checked": false, "header": false}, {"id": "yk6dvhri", "text": "A beat of the cost under the comfort: the neighbor's kindness assumes a version of events Paul can't honestly endorse, and he takes it anyway because it's easier. Self-knowledge he flinches from.", "checked": false, "header": false}, {"id": "1oxmkmgz", "text": "The QR-code sex worker: on the way home, he picks her up — scans the code, enters requests, gets a quote, Apple Pays, she joins him. Frictionless, normalized, bleak, faintly funny. Peak five-minutes-future texture. Let the banality of the transaction do the work.", "checked": false, "header": false}, {"id": "cxi18ejj", "text": "Arrival at his door — and Sadie is waiting. (Pays off the unknown number from Ch.4.) She sees him arriving with the stranger.", "checked": false, "header": false}, {"id": "dex5i592", "text": "The instant collapse: the shame Paul believed he'd shed comes roaring back the second the one person whose judgment he can't bear is standing there. The whole post-shame freedom evaporates in her presence. He's nineteen-years-of-history naked in front of the only audience that matters.", "checked": false, "header": false}, {"id": "5078a6hf", "text": "WORLD RULES — The QR/Apple Pay sex economy (normalized, regulated-feeling, frictionless). How recognition works now (strangers know your story; comfort and judgment both come unsolicited).", "checked": false, "header": false}, {"id": "6hotzgon", "text": "SEEDS — Sadie at the door = the engine for the rest of the book. The sex worker as his first image to Sadie = the shame dynamic that governs the house. The neighbor's \"your ex was a liar\" = the unresolved truth about what actually happened (feeds the ambiguity).", "checked": false, "header": false}, {"id": "62zt0flm", "text": "COIN — Sadie arrives. Everything changes. (The biggest coin in the movement.)", "checked": false, "header": false}, {"id": "z3h9ko2o", "text": "CLIFFHANGER — His first image to his stepdaughter in years is this. Cut before either speaks — or on the first impossible beat of him trying to.", "checked": false, "header": false}, {"id": "5vd43zqq", "text": "VOICE — The warmth and freedom at their peak, then the prose contracting the instant he sees her — the voice itself losing its ease. Let the style enact the shame returning.", "checked": false, "header": false}]}, {"id": "6hhfd8oo", "pov": "Travis", "body": "", "beats": [{"id": "ha16q0n9", "text": "JOB — Take the architect into the world he publicly condemns and make him a hypocrite on the record. Render the underground as genuinely dangerous. End on the lesson he doesn't yet understand.", "checked": false, "header": false}, {"id": "2iq28nmu", "text": "OPEN ON — Travis sneaking out — the optimizer out of his element, scared, exposed. The crypto-bro confidence stripped away.", "checked": false, "header": false}, {"id": "tlshq2wr", "text": "Beats", "header": true}, {"id": "6m3vi5cn", "text": "The decision recommitted: he's doing this for Mara, for the family, for Derek. Tell himself it's love. (It is.)", "checked": false, "header": false}, {"id": "yx1hz6lk", "text": "The underground, rendered as unsafe — physically, morally. This is not a clean transaction like Paul's QR scan; it's a frightening, lawless world. Travis is out of his depth and knows it. The fear is the texture.", "checked": false, "header": false}, {"id": "whthaefh", "text": "Navigating the protocol — the cutout, the price (rich-people money for a full clean; he can afford it, barely, and what that costs him matters), the dread of being seen.", "checked": false, "header": false}, {"id": "e0wotp8t", "text": "The scrub happens. Mara's history — the human, myth-fatal thing — erased. Irreversible.", "checked": false, "header": false}, {"id": "vh1ehrik", "text": "The hypocrisy made literal: the exposer is now, on the record, a client of concealment. The man who built a machine to reveal has paid to hide. He knows it. He does it anyway.", "checked": false, "header": false}, {"id": "fmkon1a0", "text": "The ending beat — the lesson he can't yet read: he checks the record. Clean. Relief — and then the hollowness, because the secret is still in his head, and it's still in the world's. He just spent everything and learned nothing. (Seeds the analog rule: you can't scrub a person. M7 will prove it.)", "checked": false, "header": false}, {"id": "tq4z1dgi", "text": "WORLD RULES — The cleaning underground — how it works, what it costs, how dangerous it is, who can afford it (the class tell: a full clean is rich money). The contrast with the legal, frictionless QR economy of Ch.7 — concealment is the illegal economy now, because concealment is the only sin.", "checked": false, "header": false}, {"id": "dv7t6t0d", "text": "SEEDS — The scrub = the M5 list liability (Travis's name as a client). The hypocrisy = the engine of his whole arc. The \"learned nothing\" hollowness = the analog rule, paid off when Mara's caught anyway (M7). The cost of the clean = his finances/desperation (feeds the seat-gunning).", "checked": false, "header": false}, {"id": "binefknt", "text": "COIN — The scrub — irreversible, identity-defining. He is now what he hunts.", "checked": false, "header": false}, {"id": "4bb232zy", "text": "CLIFFHANGER — The clean record on the screen that changes nothing inside him. End the movement on the architect having committed his original sin — and on the dawning, unspoken sense that it didn't work the way he thought it would.", "checked": false, "header": false}, {"id": "0zharoi0", "text": "VOICE — Strip the Ch.5 confidence. The optimizer who controls everything, out of control. Fear in the prose. This is the first crack in Travis, and the reader should feel the person under the persona for the first time.", "checked": false, "header": false}]}, {"id": "4oe0degz", "pov": "M", "body": "", "beats": []}], "updatedAt": 0};
 
 const LS_KEY = 'cognito_manuscript_v1';
+const LIB_KEY = 'cognito_library_v2';
 const SNAP_KEY = 'cognito_manuscript_v1__snapshots';
 const META_KEY = 'cognito_manuscript_v1__meta';
-let state = loadLocal();
+let library = loadLibrary();
+let state = activeBook();     // the book currently open for editing
 let ui = { view:'cover', chapterId:null, beatsVisible:true, sidebarOpen:false };
 let saveTimer=null;
 let lastSaveOk=true;          // false if the most recent local write failed
@@ -212,6 +220,41 @@ function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;
 function loadLocal(){ try{ const s=localStorage.getItem(LS_KEY); if(s) return migrate(JSON.parse(s)); }catch(e){} return migrate(structuredClone(SEED)); }
 function migrate(st){ st.chapters=st.chapters||[]; st.chapters.forEach(c=>{ c.id=c.id||uid(); c.beats=c.beats||[]; c.beats.forEach(b=>b.id=b.id||uid()); c.body=c.body||''; }); return st; }
 
+/* ---- multi-book library ----
+   A library is { books:[book...], currentId, updatedAt }. Each book has the
+   same shape as the old single novel (title, author, chapters). toLibrary()
+   accepts ANY older shape and upgrades it, so existing COGNITO data — whether
+   in local storage or the cloud — becomes Book 1 automatically and is never
+   stranded when the app file is updated. */
+function bookFrom(novel, stableId){
+  const b = migrate(novel||{chapters:[]});
+  b.id = b.id || stableId || uid();
+  b.title = b.title || 'Untitled Book';
+  b.author = b.author || '';
+  b.updatedAt = b.updatedAt || Date.now();
+  return b;
+}
+function toLibrary(obj){
+  let lib;
+  if(obj && Array.isArray(obj.books)){
+    lib = obj; lib.books = lib.books.map(b=>bookFrom(b));
+  } else if(obj && Array.isArray(obj.chapters)){
+    lib = { books:[ bookFrom(obj,'book-cognito') ], currentId:null, updatedAt:obj.updatedAt||Date.now() };
+  } else {
+    lib = { books:[], currentId:null, updatedAt:Date.now() };
+  }
+  if(!lib.books.length) lib.books.push(bookFrom(structuredClone(SEED),'book-cognito'));
+  if(!lib.currentId || !lib.books.some(b=>b.id===lib.currentId)) lib.currentId = lib.books[0].id;
+  lib.updatedAt = lib.updatedAt || Date.now();
+  return lib;
+}
+function loadLibrary(){
+  try{ const s=localStorage.getItem(LIB_KEY); if(s) return toLibrary(JSON.parse(s)); }catch(e){}       // existing library
+  try{ const s=localStorage.getItem(LS_KEY);  if(s) return toLibrary(JSON.parse(s)); }catch(e){}       // migrate legacy COGNITO
+  return toLibrary(structuredClone(SEED));                                                              // fresh install
+}
+function activeBook(){ return library.books.find(b=>b.id===library.currentId) || library.books[0]; }
+
 function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts), p=n=>String(n).padStart(2,'0'); return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
 function setStatus(kind){
   const d=document.getElementById('statusDot'), t=document.getElementById('statusTxt');
@@ -224,6 +267,7 @@ function setStatus(kind){
 }
 function scheduleSave(){
   state.updatedAt=Date.now();
+  library.updatedAt=state.updatedAt;
   const ok = saveLocal();
   setStatus(ok ? 'saving' : 'saved');
   if(ok) maybeSnapshot();
@@ -243,7 +287,7 @@ function autosaveTick(){
   // If an earlier local write failed, try again now.
   if(!lastSaveOk) saveLocal();
   // Cloud catch-up: only acts if there are changes not yet confirmed in the cloud.
-  if(useCloud && cloudReady && (state.updatedAt||0) > lastCloudSavedUpdatedAt){
+  if(useCloud && cloudReady && (library.updatedAt||0) > lastCloudSavedUpdatedAt){
     setStatus('saving');
     cloudSave().then(ok=>{ setStatus(ok ? 'cloud' : (lastSaveOk?'saved':'saving')); });
   }
@@ -255,7 +299,8 @@ function startAutosave(){ clearInterval(autosaveTimer); autosaveTimer=setInterva
    loud, persistent warning instead of silently losing the user's work. */
 function saveLocal(){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    library.updatedAt = Math.max(library.updatedAt||0, state.updatedAt||Date.now());
+    localStorage.setItem(LIB_KEY, JSON.stringify(library));
     lastSavedAt=Date.now();
     if(!lastSaveOk){ lastSaveOk=true; hideBanner(); }
     return true;
@@ -278,7 +323,7 @@ function maybeSnapshot(){
   lastSnapshotAt=now;
   let snaps=[];
   try{ snaps=JSON.parse(localStorage.getItem(SNAP_KEY)||'[]'); }catch(e){ snaps=[]; }
-  snaps.push({ at:now, data:JSON.stringify(state) });
+  snaps.push({ at:now, data:JSON.stringify(library) });
   while(snaps.length>6) snaps.shift();
   for(;;){
     try{ localStorage.setItem(SNAP_KEY, JSON.stringify(snaps)); break; }
@@ -291,35 +336,49 @@ function stamp(){
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());
 }
-/* Download the entire manuscript as a small .json file. This is the
+/* Download the entire LIBRARY (all books) as one .json file. This is the
    universal safety net: it survives cleared caches, new browsers, and lost
    devices, and can be restored anywhere. */
 function exportBackup(){
   try{
-    const payload={ _format:'cognito-backup', _version:1, savedAt:new Date().toISOString(), state:state };
+    const payload={ _format:'cognito-library-backup', _version:2, savedAt:new Date().toISOString(), library:library };
     saveBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),
-             safeName()+'_backup_'+stamp()+'.json');
+             'manuscripts_backup_'+stamp()+'.json');
     try{
       const meta=JSON.parse(localStorage.getItem(META_KEY)||'{}');
       meta.lastBackup=Date.now(); meta.savesSinceBackup=0;
       localStorage.setItem(META_KEY, JSON.stringify(meta));
     }catch(e){}
-    showBanner('ok','Backup downloaded. Keep it somewhere safe \u2014 cloud drive, email to yourself, USB.',[],4500);
+    showBanner('ok','Backup of all your books downloaded. Keep it somewhere safe \u2014 cloud drive, email to yourself, USB.',[],4500);
   }catch(e){ alert('Could not create the backup file: '+e.message); }
 }
 function importBackup(file){
   const r=new FileReader();
   r.onload=()=>{
     let obj; try{ obj=JSON.parse(r.result); }catch(e){ alert('That file is not a valid backup.'); return; }
-    const incoming = obj && obj.state ? obj.state : obj;
-    if(!incoming || !Array.isArray(incoming.chapters)){ alert('That file does not look like a manuscript backup.'); return; }
-    const when = obj.savedAt ? new Date(obj.savedAt).toLocaleString() : 'unknown date';
-    if(!confirm('Restore from this backup ('+when+')?\n\nThis replaces what is currently in this browser. '+
-                'Your current version will be kept as a snapshot you can roll back to.')) return;
-    maybeSnapshot(); lastSnapshotAt=0; maybeSnapshot(); // force-capture current before overwrite
-    state=migrate(incoming); saveLocal(); cloudSave&&cloudSave();
-    ui.view='cover'; ui.chapterId=null; renderApp();
-    showBanner('ok','Backup restored.',[],3500);
+    const when = obj && obj.savedAt ? new Date(obj.savedAt).toLocaleString() : 'unknown date';
+    const libPayload = obj && obj.library ? obj.library : obj;      // full library backup
+    const single = obj && obj.state ? obj.state : obj;               // legacy single-book backup
+
+    if(libPayload && Array.isArray(libPayload.books)){
+      const incoming=toLibrary(libPayload);
+      if(!confirm('Restore this backup of ALL books ('+when+')?\n\nThis replaces every book currently in this browser. '+
+                  'Your current library is snapshotted first so you can roll back.')) return;
+      maybeSnapshot(); lastSnapshotAt=0; maybeSnapshot();
+      library=incoming; state=activeBook(); saveLocal(); cloudSave&&cloudSave();
+      ui.view='cover'; ui.chapterId=null; renderApp();
+      showBanner('ok','All books restored.',[],3500); return;
+    }
+    if(single && Array.isArray(single.chapters)){
+      if(!confirm('This is a single-book backup ('+when+').\n\nAdd it to your library as a new book?')) return;
+      maybeSnapshot();
+      const b=bookFrom(single); b.id=uid();                          // fresh id so it never collides
+      library.books.push(b); library.currentId=b.id; state=b;
+      library.updatedAt=Date.now(); saveLocal(); cloudSave&&cloudSave();
+      ui.view='cover'; ui.chapterId=null; renderApp();
+      showBanner('ok','Book added from backup: '+esc(b.title),[],3500); return;
+    }
+    alert('That file does not look like a manuscript backup.');
   };
   r.readAsText(file);
 }
@@ -328,24 +387,24 @@ function pickBackupFile(){
   inp.onchange=()=>{ if(inp.files&&inp.files[0]) importBackup(inp.files[0]); };
   inp.click();
 }
-/* Roll back to one of the recent automatic snapshots. */
+/* Roll back to one of the recent automatic snapshots (whole library). */
 function openSnapshots(){
   let snaps=[];
   try{ snaps=JSON.parse(localStorage.getItem(SNAP_KEY)||'[]'); }catch(e){}
   if(!snaps.length){ alert('No automatic snapshots yet. They begin accumulating as you write.'); return; }
   const lines=snaps.map((s,i)=>{
-    const st=(()=>{try{return JSON.parse(s.data);}catch(e){return null;}})();
-    const n=st?st.chapters.length:'?';
-    return (i+1)+') '+new Date(s.at).toLocaleString()+'  \u2014  '+n+' chapters';
+    const lib=(()=>{try{return toLibrary(JSON.parse(s.data));}catch(e){return null;}})();
+    const nb=lib?lib.books.length:'?';
+    return (i+1)+') '+new Date(s.at).toLocaleString()+'  \u2014  '+nb+' book'+(nb===1?'':'s');
   }).join('\n');
   const pick=prompt('Roll back to an earlier automatic snapshot?\n\n'+lines+
                     '\n\nType the number to restore (or Cancel). Your current version is snapshotted first.');
   if(pick==null) return;
   const idx=parseInt(pick,10)-1;
   if(isNaN(idx)||idx<0||idx>=snaps.length){ alert('No snapshot for that number.'); return; }
-  let chosen; try{ chosen=JSON.parse(snaps[idx].data); }catch(e){ alert('That snapshot is unreadable.'); return; }
+  let chosen; try{ chosen=toLibrary(JSON.parse(snaps[idx].data)); }catch(e){ alert('That snapshot is unreadable.'); return; }
   lastSnapshotAt=0; maybeSnapshot();
-  state=migrate(chosen); saveLocal(); cloudSave&&cloudSave();
+  library=chosen; state=activeBook(); saveLocal(); cloudSave&&cloudSave();
   ui.view='cover'; ui.chapterId=null; renderApp();
   showBanner('ok','Rolled back to '+new Date(snaps[idx].at).toLocaleString()+'.',[],4000);
 }
@@ -389,6 +448,37 @@ function go(view, chapterId){
 }
 function currentChapter(){ return state.chapters.find(c=>c.id===ui.chapterId)||null; }
 
+/* ----------------------------- books ---------------------------------- */
+function switchBook(id){
+  const b=library.books.find(x=>x.id===id); if(!b) return;
+  library.currentId=id; state=b;
+  library.updatedAt=Date.now(); saveLocal();
+  ui.view='cover'; ui.chapterId=null; renderApp();
+}
+function newBook(){
+  const raw=prompt('Title for the new book:','Untitled Book');
+  if(raw===null) return;                                   // user cancelled
+  const title=raw.trim()||'Untitled Book';
+  const b={ id:uid(), title:title, author:state.author||'', chapters:[], updatedAt:Date.now() };
+  library.books.push(b); library.currentId=b.id; state=b;
+  library.updatedAt=Date.now(); saveLocal(); cloudSave&&cloudSave();
+  ui.view='cover'; ui.chapterId=null; renderApp();
+}
+function deleteBook(id){
+  const b=library.books.find(x=>x.id===id); if(!b) return;
+  if(!confirm('Delete the book \u201C'+(b.title||'Untitled Book')+'\u201D?\n\nThis removes all its chapters. A snapshot is saved first, so you can roll back from Backups \u0026 Safety.')) return;
+  lastSnapshotAt=0; maybeSnapshot();                       // capture before removal
+  library.books=library.books.filter(x=>x.id!==id);
+  if(!library.books.length){                               // never leave the library empty
+    const fresh={ id:uid(), title:'Untitled Book', author:'', chapters:[], updatedAt:Date.now() };
+    library.books.push(fresh);
+  }
+  if(library.currentId===id) library.currentId=library.books[0].id;
+  state=activeBook(); library.updatedAt=Date.now(); saveLocal(); cloudSave&&cloudSave();
+  ui.view='cover'; ui.chapterId=null; renderApp();
+  showBanner('ok','Book deleted. You can roll it back from Backups \u0026 Safety.',[],4000);
+}
+
 /* ============================ RENDER: SHELL ============================= */
 function renderApp(){
   const root=document.getElementById('root');
@@ -422,6 +512,24 @@ function renderTopbar(){
 
 function renderSidebar(){
   const sb=el(`<div class="sidebar ${ui.sidebarOpen?'open':''}"></div>`);
+
+  // ---- Books (library switcher) ----
+  const lib=el(`<div class="navsec"><div class="navlabel">Books</div></div>`);
+  library.books.forEach(b=>{
+    const row=el(`<div class="bookrow ${b.id===library.currentId?'active':''}">
+      <button class="navitem bsel"><span class="ico">\u{1F4D5}</span> <span class="btitle">${esc(b.title||'Untitled Book')}</span></button>
+      <button class="mini bdel" title="Delete book">\u00d7</button>
+    </div>`);
+    row.querySelector('.bsel').onclick=()=>switchBook(b.id);
+    row.querySelector('.bdel').onclick=(e)=>{ e.stopPropagation(); deleteBook(b.id); };
+    lib.appendChild(row);
+  });
+  const addBook=el(`<button class="addbtn" style="margin-top:6px">+ New book</button>`);
+  addBook.onclick=newBook;
+  lib.appendChild(addBook);
+  sb.appendChild(lib);
+  sb.appendChild(el(`<div class="navdivider"></div>`));
+
   const top=el(`<div class="navsec">
     <div class="navlabel">Front Matter</div>
     <button class="navitem ${ui.view==='cover'?'active':''}" data-go="cover"><span class="ico">\u25C8</span> Cover Page</button>
@@ -511,7 +619,8 @@ function renderCover(main){
   main.appendChild(wrap);
   const ti=card.querySelector('#fTitle'), au=card.querySelector('#fAuthor');
   const bt=page.querySelector('.booktitle'), by=page.querySelector('.auth');
-  ti.oninput=()=>{ state.title=ti.value; bt.textContent=ti.value; document.querySelector('.brand').childNodes[0].textContent=ti.value; scheduleSave(); };
+  ti.oninput=()=>{ state.title=ti.value; bt.textContent=ti.value; document.querySelector('.brand').childNodes[0].textContent=ti.value;
+    const active=document.querySelector('.bookrow.active .btitle'); if(active) active.textContent=ti.value; scheduleSave(); };
   au.oninput=()=>{ state.author=au.value; by.textContent=au.value; document.querySelector('.brand small').textContent=au.value; scheduleSave(); };
 }
 
@@ -916,10 +1025,13 @@ function subscribeCloud(){
     if(document.activeElement && /(INPUT|TEXTAREA)/.test(document.activeElement.tagName)) return;
     if(document.activeElement && document.activeElement.isContentEditable) return;
     try{
-      const remote=JSON.parse(data.payload);
-      if((remote.updatedAt||0) > (state.updatedAt||0)){
-        remoteApplying=true; state=migrate(remote); try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
-        lastCloudSavedUpdatedAt = state.updatedAt||0; lastSavedAt=Date.now();
+      const remoteLib=toLibrary(JSON.parse(data.payload));   // upgrades legacy single-novel cloud data too
+      if((remoteLib.updatedAt||0) > (library.updatedAt||0)){
+        remoteApplying=true;
+        library=remoteLib; state=activeBook();
+        try{localStorage.setItem(LIB_KEY,JSON.stringify(library));}catch(e){}
+        lastCloudSavedUpdatedAt = library.updatedAt||0; lastSavedAt=Date.now();
+        ui.view='cover'; ui.chapterId=null;
         renderApp(); remoteApplying=false; setStatus('cloud');
       }
     }catch(e){}
@@ -928,8 +1040,9 @@ function subscribeCloud(){
 async function cloudSave(force){
   if(!useCloud||!cloudReady||!fbUid||remoteApplying) return false;
   try{
-    await fbDb.collection('novels').doc(fbUid).set({ payload:JSON.stringify(state), updatedAt:state.updatedAt||Date.now() }, {merge:true});
-    lastCloudSavedUpdatedAt = state.updatedAt||Date.now();
+    library.updatedAt = library.updatedAt||Date.now();
+    await fbDb.collection('novels').doc(fbUid).set({ payload:JSON.stringify(library), updatedAt:library.updatedAt }, {merge:true});
+    lastCloudSavedUpdatedAt = library.updatedAt;
     return true;
   }catch(e){ return false; }
 }
