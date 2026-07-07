@@ -257,6 +257,28 @@ function loadLibrary(){
 }
 function activeBook(){ return library.books.find(b=>b.id===library.currentId) || library.books[0]; }
 
+/* Merge two libraries book-by-book. A book present on only one side is always
+   KEPT; a book on both sides resolves to whichever copy was edited more
+   recently (per-book updatedAt). This means cloud sync can never drop a book
+   that one side hasn't heard about yet — e.g. one you just created. Order is
+   local order first, then any books that exist only in the remote copy. */
+function mergeLibraries(localLib, remoteLib){
+  const pick={};
+  (localLib.books||[]).forEach(b=>{ pick[b.id]=b; });
+  (remoteLib.books||[]).forEach(rb=>{
+    const ex=pick[rb.id];
+    pick[rb.id] = !ex ? rb : ((rb.updatedAt||0) > (ex.updatedAt||0) ? rb : ex);
+  });
+  const seen={}, order=[];
+  (localLib.books||[]).concat(remoteLib.books||[]).forEach(b=>{
+    if(!seen[b.id]){ seen[b.id]=1; order.push(bookFrom(pick[b.id])); }
+  });
+  let currentId=localLib.currentId;
+  if(!order.some(b=>b.id===currentId))
+    currentId = order.some(b=>b.id===remoteLib.currentId) ? remoteLib.currentId : (order[0]&&order[0].id);
+  return { books:order, currentId, updatedAt: Math.max(localLib.updatedAt||0, remoteLib.updatedAt||0) };
+}
+
 function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts), p=n=>String(n).padStart(2,'0'); return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
 function setStatus(kind){
   const d=document.getElementById('statusDot'), t=document.getElementById('statusTxt');
@@ -1031,14 +1053,18 @@ function subscribeCloud(){
     if(document.activeElement && /(INPUT|TEXTAREA)/.test(document.activeElement.tagName)) return;
     if(document.activeElement && document.activeElement.isContentEditable) return;
     try{
-      const remoteLib=toLibrary(JSON.parse(data.payload));   // upgrades legacy single-novel cloud data too
-      if((remoteLib.updatedAt||0) > (library.updatedAt||0)){
+      const remoteLib=toLibrary(JSON.parse(data.payload));
+      const merged=mergeLibraries(library, remoteLib);
+      const changed = JSON.stringify(merged.books)!==JSON.stringify(library.books) || merged.currentId!==library.currentId;
+      if(changed){
         remoteApplying=true;
-        library=remoteLib; state=activeBook();
+        library=merged; state=activeBook();
         try{localStorage.setItem(LIB_KEY,JSON.stringify(library));}catch(e){}
-        lastCloudSavedUpdatedAt = library.updatedAt||0; lastSavedAt=Date.now();
-        ui.view='cover'; ui.chapterId=null;
+        lastSavedAt=Date.now();
+        if(ui.chapterId && !state.chapters.some(c=>c.id===ui.chapterId)){ ui.view='cover'; ui.chapterId=null; }
         renderApp(); remoteApplying=false; setStatus('cloud');
+      } else {
+        library.updatedAt = Math.max(library.updatedAt||0, merged.updatedAt||0);
       }
     }catch(e){}
   });
